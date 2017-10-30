@@ -14,6 +14,8 @@ import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
@@ -62,12 +64,13 @@ public class ConectarTela {
 
     private void conectar(String ip) {
         try {
-            BatalhaNavalRMIMain.comunicacao = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + BatalhaNavalRMIMain.PORTA_PADRAO + "/Comunicador");
+            Registry registro = LocateRegistry.getRegistry(ip, BatalhaNavalRMIMain.PORTA_PADRAO);
+            BatalhaNavalRMIMain.comunicacao = (ComunicacaoRMI)registro.lookup("Comunicador");
             BatalhaNavalRMIMain.comunicacao.conectar(2);
             BatalhaTela.nJogador = 2;
             
             new PreparacaoTela().iniciarTela();
-        } catch (NotBoundException | MalformedURLException | RemoteException ex) {
+        } catch (NotBoundException | RemoteException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
