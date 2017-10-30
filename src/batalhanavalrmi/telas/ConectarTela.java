@@ -64,13 +64,12 @@ public class ConectarTela {
 
     private void conectar(String ip) {
         try {
-            Registry registro = LocateRegistry.getRegistry(ip, BatalhaNavalRMIMain.PORTA_PADRAO);
-            BatalhaNavalRMIMain.comunicacao = (ComunicacaoRMI)registro.lookup("Comunicador");
+            BatalhaNavalRMIMain.comunicacao = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + BatalhaNavalRMIMain.PORTA_PADRAO + "/Comunicador");
             BatalhaNavalRMIMain.comunicacao.conectar(2);
             BatalhaTela.nJogador = 2;
             
             new PreparacaoTela().iniciarTela();
-        } catch (NotBoundException | RemoteException ex) {
+        } catch (NotBoundException | MalformedURLException | RemoteException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

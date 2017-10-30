@@ -8,8 +8,10 @@ import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.net.MalformedURLException;
 import java.rmi.AccessException;
 import java.rmi.AlreadyBoundException;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -64,7 +66,7 @@ public class CriarPartidaTela {
         try {
             BatalhaNavalRMIMain.comunicacao = new Comunicacao();
             Registry registro = LocateRegistry.createRegistry(BatalhaNavalRMIMain.PORTA_PADRAO);
-            registro.rebind("Comunicador", BatalhaNavalRMIMain.comunicacao);
+            Naming.rebind("rmi://10.16.4.72:12345/Comunicador", BatalhaNavalRMIMain.comunicacao);
             
             BatalhaNavalRMIMain.comunicacao.conectar(1);
             BatalhaTela.nJogador = 1;
@@ -77,6 +79,8 @@ public class CriarPartidaTela {
                 }
             }
         } catch (RemoteException ex) {
+            Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (MalformedURLException ex) {
             Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
