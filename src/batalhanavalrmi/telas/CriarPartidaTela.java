@@ -70,6 +70,7 @@ public class CriarPartidaTela {
             BatalhaTela.nJogador = 1;
             
             while (true) {
+                System.out.println("Estado do jogador 2: " + BatalhaNavalRMIMain.comunicacao.getJogador2Estado());
                 if (BatalhaNavalRMIMain.comunicacao.getJogador2Estado() == Comunicacao.CONECTADO) {
                     new PreparacaoTela().iniciarTela();
                     break;
