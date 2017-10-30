@@ -2,8 +2,8 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
-import batalhanavalrmi.rede.Comunicacao;
-import static batalhanavalrmi.rede.Comunicacao.socket;
+import batalhanavalrmi.rede.ComunicacaoOLD;
+import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -49,11 +49,16 @@ public class CriarPartidaTela {
 
         new Thread(() -> {
             System.out.println("Servidor");
-            ouvirConexoes();
+            iniciarServidor();
         }).start();
     }
 
-    private static void ouvirConexoes() {
+    //https://stackoverflow.com/questions/43725556/java-rmi-client-server-chat
+    private void iniciarServidor() {
+        
+    }
+    
+    /*private static void ouvirConexoes() {
         try {
             socket = new DatagramSocket(BatalhaNavalRMIMain.PORTA_PADRAO);
             byte[] mensagemAReceber = new byte[500];
@@ -61,20 +66,20 @@ public class CriarPartidaTela {
             socket.receive(pacoteAReceber);
             String mensagemRecebida = new String(pacoteAReceber.getData());
             
-            Comunicacao.ipAEnviar = pacoteAReceber.getAddress();
-            Comunicacao.portaAEnviar = pacoteAReceber.getPort();
+            ComunicacaoOLD.ipAEnviar = pacoteAReceber.getAddress();
+            ComunicacaoOLD.portaAEnviar = pacoteAReceber.getPort();
             
             System.out.println(mensagemRecebida);
 
-            DatagramPacket pacoteResposta = new DatagramPacket(ComandosNet.CONECTADO.getBytes(), ComandosNet.CONECTADO.getBytes().length, Comunicacao.ipAEnviar, Comunicacao.portaAEnviar);
+            DatagramPacket pacoteResposta = new DatagramPacket(ComandosNet.CONECTADO.getBytes(), ComandosNet.CONECTADO.getBytes().length, ComunicacaoOLD.ipAEnviar, ComunicacaoOLD.portaAEnviar);
             socket.send(pacoteResposta);
 
             new PreparacaoTela().iniciarTela();
-            Comunicacao.vezDoUsuario = true;
-            Comunicacao.conexaoAberta = true;
-            Comunicacao.persistirConexao();
+            ComunicacaoOLD.vezDoUsuario = true;
+            ComunicacaoOLD.conexaoAberta = true;
+            ComunicacaoOLD.persistirConexao();
         } catch (IOException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }*/
 }

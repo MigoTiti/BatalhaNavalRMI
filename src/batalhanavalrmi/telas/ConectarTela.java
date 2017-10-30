@@ -2,8 +2,8 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
-import batalhanavalrmi.rede.Comunicacao;
-import static batalhanavalrmi.rede.Comunicacao.socket;
+import batalhanavalrmi.rede.ComunicacaoOLD;
+import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -57,8 +57,8 @@ public class ConectarTela {
     private static void conectar(String ip) {
         try {
             byte[] mensagem = ComandosNet.CONECTADO.getBytes();
-            Comunicacao.ipAEnviar = InetAddress.getByName(ip);
-            DatagramPacket pacoteAEnviar = new DatagramPacket(mensagem, mensagem.length, Comunicacao.ipAEnviar, Comunicacao.portaAEnviar);
+            ComunicacaoOLD.ipAEnviar = InetAddress.getByName(ip);
+            DatagramPacket pacoteAEnviar = new DatagramPacket(mensagem, mensagem.length, ComunicacaoOLD.ipAEnviar, ComunicacaoOLD.portaAEnviar);
             socket = new DatagramSocket();
             socket.send(pacoteAEnviar);
             
@@ -71,8 +71,8 @@ public class ConectarTela {
             System.out.println(respostaString);
             new PreparacaoTela().iniciarTela();
             
-            Comunicacao.conexaoAberta = true;
-            Comunicacao.persistirConexao();
+            ComunicacaoOLD.conexaoAberta = true;
+            ComunicacaoOLD.persistirConexao();
         } catch (IOException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }

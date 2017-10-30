@@ -2,7 +2,7 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
-import batalhanavalrmi.rede.Comunicacao;
+import batalhanavalrmi.rede.ComunicacaoOLD;
 import batalhanavalrmi.tabuleiros.TabuleiroPreparacao;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
@@ -98,7 +98,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         iniciar.setOnAction(evento -> {
             if (paContagem == 0 && ntContagem == 0 && ctContagem == 0 && subContagem == 0) {
                 new Thread(() -> {
-                    Comunicacao.enviarMensagem(ComandosNet.PRONTO.comando);
+                    ComunicacaoOLD.enviarMensagem(ComandosNet.PRONTO.comando);
                     new BatalhaTela().iniciarTela(navios, contagemTotal);
                 }).start();
             } else {
@@ -108,7 +108,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
 
         Button voltar = new Button("Sair da partida");
         voltar.setOnAction((ActionEvent) -> {
-            Comunicacao.enviarMensagem(ComandosNet.DESCONECTAR.comando);
+            ComunicacaoOLD.enviarMensagem(ComandosNet.DESCONECTAR.comando);
             BatalhaNavalRMIMain.createScene();
         });
 

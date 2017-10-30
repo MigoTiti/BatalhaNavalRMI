@@ -2,7 +2,7 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
-import batalhanavalrmi.rede.Comunicacao;
+import batalhanavalrmi.rede.ComunicacaoOLD;
 import batalhanavalrmi.tabuleiros.TabuleiroPronto;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
@@ -38,6 +38,8 @@ public class BatalhaTela extends TabuleiroPronto {
     public static int contagemAdversario;
     
     public static boolean pronto = false;
+    
+    public static int nJogador = 0;
 
     public static final Color COR_ACERTO = Color.RED;
     public static final Color COR_ERRO = Color.BLUE;
@@ -307,9 +309,9 @@ public class BatalhaTela extends TabuleiroPronto {
         voltar.setOnAction(event -> {
             campoAdversarioMatriz = null;
             campoUsuarioMatriz = null;
-            Comunicacao.enviarMensagem(ComandosNet.DESCONECTAR.comando);
+            ComunicacaoOLD.enviarMensagem(ComandosNet.DESCONECTAR.comando);
             BatalhaNavalRMIMain.createScene();
-            Comunicacao.desconectar();
+            ComunicacaoOLD.desconectar();
         });
 
         root.setTop(hBoxTop);
@@ -329,10 +331,10 @@ public class BatalhaTela extends TabuleiroPronto {
                     BatalhaNavalRMIMain.enviarMensagemErro("TU JÁ PERDEU MANO, TE AQUIETA");
                 } else if (contagemAdversario == 0) {
                     BatalhaNavalRMIMain.enviarMensagemErro("O CARA JÁ PERDEU MANO, TE AQUIETA");
-                } else if (Comunicacao.vezDoUsuario) {
+                } else if (ComunicacaoOLD.vezDoUsuario) {
                     if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
-                        Comunicacao.enviarMensagem(criarJogada(x, y));
-                        Comunicacao.vezDoUsuario = false;
+                        ComunicacaoOLD.enviarMensagem(criarJogada(x, y));
+                        ComunicacaoOLD.vezDoUsuario = false;
                     } else {
                         BatalhaNavalRMIMain.enviarMensagemErro("TU JÁ JOGOU AÍ, SEU DOENTE, TU TÁ FICANDO MALUCO?");
                     }
