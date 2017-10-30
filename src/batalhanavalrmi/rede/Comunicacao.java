@@ -27,8 +27,10 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
     public void conectar(int nJogador) throws RemoteException {
         if (nJogador == 1) {
             jogador1Estado = CONECTADO;
+            System.out.println("Jogador 1 conectado");
         } else {
             jogador2Estado = CONECTADO;
+            System.out.println("Jogador 2 conectado");
         }
     }
 
@@ -52,13 +54,15 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
 
     @Override
     public String jogada(int nJogador, String jogada) throws RemoteException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        return "";
     }
 
+    @Override
     public int getJogador1Estado() {
         return jogador1Estado;
     }
 
+    @Override
     public int getJogador2Estado() {
         return jogador2Estado;
     }

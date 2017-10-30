@@ -1,5 +1,7 @@
 package batalhanavalrmi;
 
+import batalhanavalrmi.rede.Comunicacao;
+import batalhanavalrmi.rede.ComunicacaoRMI;
 import batalhanavalrmi.telas.ConectarTela;
 import batalhanavalrmi.telas.CriarPartidaTela;
 import java.awt.BorderLayout;
@@ -27,6 +29,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 public class BatalhaNavalRMIMain extends JApplet {
 
+    public static ComunicacaoRMI comunicacao = null;
     private static final int JFXPANEL_WIDTH_INT = 1000;
     private static final int JFXPANEL_HEIGHT_INT = 700;
     public static final int PORTA_PADRAO = 12345;

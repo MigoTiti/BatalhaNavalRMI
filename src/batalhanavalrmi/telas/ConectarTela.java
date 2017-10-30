@@ -2,12 +2,18 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
+import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoOLD;
 import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
+import batalhanavalrmi.rede.ComunicacaoRMI;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
@@ -54,7 +60,19 @@ public class ConectarTela {
         }).start();
     }
 
-    private static void conectar(String ip) {
+    private void conectar(String ip) {
+        try {
+            BatalhaNavalRMIMain.comunicacao = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + BatalhaNavalRMIMain.PORTA_PADRAO + "/Comunicador");
+            BatalhaNavalRMIMain.comunicacao.conectar(2);
+            BatalhaTela.nJogador = 2;
+            
+            new PreparacaoTela().iniciarTela();
+        } catch (NotBoundException | MalformedURLException | RemoteException ex) {
+            Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    /*private static void conectar(String ip) {
         try {
             byte[] mensagem = ComandosNet.CONECTADO.getBytes();
             ComunicacaoOLD.ipAEnviar = InetAddress.getByName(ip);
@@ -76,5 +94,5 @@ public class ConectarTela {
         } catch (IOException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
+    }*/
 }

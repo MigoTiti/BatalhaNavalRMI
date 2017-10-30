@@ -2,11 +2,17 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
+import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoOLD;
 import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
+import java.rmi.AccessException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
@@ -55,7 +61,23 @@ public class CriarPartidaTela {
 
     //https://stackoverflow.com/questions/43725556/java-rmi-client-server-chat
     private void iniciarServidor() {
-        
+        try {
+            BatalhaNavalRMIMain.comunicacao = new Comunicacao();
+            Registry registro = LocateRegistry.createRegistry(BatalhaNavalRMIMain.PORTA_PADRAO);
+            registro.rebind("Comunicador", BatalhaNavalRMIMain.comunicacao);
+            
+            BatalhaNavalRMIMain.comunicacao.conectar(1);
+            BatalhaTela.nJogador = 1;
+            
+            while (true) {
+                if (BatalhaNavalRMIMain.comunicacao.getJogador2Estado() == Comunicacao.CONECTADO) {
+                    new PreparacaoTela().iniciarTela();
+                    break;
+                }
+            }
+        } catch (RemoteException ex) {
+            Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     /*private static void ouvirConexoes() {
