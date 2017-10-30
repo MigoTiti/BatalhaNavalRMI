@@ -3,6 +3,7 @@ package batalhanavalrmi.rede;
 import batalhanavalrmi.util.RectangleCoordenado;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.StringTokenizer;
 
 public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
 
@@ -46,7 +47,7 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
     @Override
     public void pronto(int nJogador) throws RemoteException {
         if (nJogador == 1) {
-            jogador1Estado = PRONTO;
+            jogador1Estado = VEZ_DO_JOGADOR;
         } else {
             jogador2Estado = PRONTO;
         }
@@ -54,7 +55,27 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
 
     @Override
     public String jogada(int nJogador, String jogada) throws RemoteException {
-        return "";
+        StringTokenizer st = new StringTokenizer(jogada, "&");
+        int x = Integer.parseInt(st.nextToken());
+        int y = Integer.parseInt(st.nextToken());
+        
+        if (nJogador == 1) {
+            jogador1Estado = PRONTO;
+            jogador2Estado = VEZ_DO_JOGADOR;
+            if (jogador2Campo[x][y].isOcupado()) {
+                return "a";
+            } else {
+                return "e";
+            }
+        } else {
+            jogador2Estado = PRONTO;
+            jogador1Estado = VEZ_DO_JOGADOR;
+            if (jogador1Campo[x][y].isOcupado()) {
+                return "a";
+            } else {
+                return "e";
+            }
+        }
     }
 
     @Override
@@ -73,5 +94,25 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
 
     public void setJogador2Estado(int jogador2Estado) {
         this.jogador2Estado = jogador2Estado;
+    }
+
+    @Override
+    public RectangleCoordenado[][] getJogador1Campo() {
+        return jogador1Campo;
+    }
+
+    @Override
+    public RectangleCoordenado[][] getJogador2Campo() {
+        return jogador2Campo;
+    }
+
+    @Override
+    public void setJogador1Campo(RectangleCoordenado[][] jogador1Campo) {
+        Comunicacao.jogador1Campo = jogador1Campo;
+    }
+
+    @Override
+    public void setJogador2Campo(RectangleCoordenado[][] jogador2Campo) {
+        Comunicacao.jogador2Campo = jogador2Campo;
     }
 }

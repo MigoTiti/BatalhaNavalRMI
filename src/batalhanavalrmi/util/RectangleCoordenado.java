@@ -1,9 +1,10 @@
 package batalhanavalrmi.util;
 
+import java.io.Serializable;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
-public class RectangleCoordenado extends Rectangle{
+public class RectangleCoordenado extends Rectangle implements Serializable{
     
     protected int xCoordenada;
     protected int yCoordenada;

@@ -1,21 +1,12 @@
 package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
-import batalhanavalrmi.enums.ComandosNet;
-import batalhanavalrmi.rede.Comunicacao;
-import batalhanavalrmi.rede.ComunicacaoOLD;
 import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
 import batalhanavalrmi.rede.ComunicacaoRMI;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;

@@ -7,8 +7,11 @@ import batalhanavalrmi.tabuleiros.TabuleiroPreparacao;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -98,8 +101,15 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         iniciar.setOnAction(evento -> {
             if (paContagem == 0 && ntContagem == 0 && ctContagem == 0 && subContagem == 0) {
                 new Thread(() -> {
-                    ComunicacaoOLD.enviarMensagem(ComandosNet.PRONTO.comando);
-                    new BatalhaTela().iniciarTela(navios, contagemTotal);
+                    try {
+                        BatalhaNavalRMIMain.comunicacao.pronto(BatalhaTela.nJogador);
+                        System.out.println("Status jogador 1: " + BatalhaNavalRMIMain.comunicacao.getJogador1Estado());
+                        System.out.println("Status jogador 2: " + BatalhaNavalRMIMain.comunicacao.getJogador2Estado());
+                        //ComunicacaoOLD.enviarMensagem(ComandosNet.PRONTO.comando);
+                        new BatalhaTela().iniciarTela(navios, contagemTotal);
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(PreparacaoTela.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }).start();
             } else {
                 BatalhaNavalRMIMain.enviarMensagemErro("Posicione todos os navios");

@@ -1,6 +1,5 @@
 package batalhanavalrmi;
 
-import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
 import batalhanavalrmi.telas.ConectarTela;
 import batalhanavalrmi.telas.CriarPartidaTela;

@@ -2,12 +2,16 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.enums.ComandosNet;
+import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoOLD;
 import batalhanavalrmi.tabuleiros.TabuleiroPronto;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
 import java.net.URL;
+import java.rmi.RemoteException;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -36,9 +40,9 @@ public class BatalhaTela extends TabuleiroPronto {
 
     public static int contagemUsuario;
     public static int contagemAdversario;
-    
+
     public static boolean pronto = false;
-    
+
     public static int nJogador = 0;
 
     public static final Color COR_ACERTO = Color.RED;
@@ -290,6 +294,20 @@ public class BatalhaTela extends TabuleiroPronto {
             });
         });
 
+        if (nJogador == 1) {
+            try {
+                BatalhaNavalRMIMain.comunicacao.setJogador1Campo(campoUsuarioMatriz);
+            } catch (RemoteException ex) {
+                Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        } else {
+            try {
+                BatalhaNavalRMIMain.comunicacao.setJogador2Campo(campoUsuarioMatriz);
+            } catch (RemoteException ex) {
+                Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
         campoAdversarioPronto.getChildren().addAll(hBoxVideoAdversario, hBoxCampoAdversario);
 
         vboxUsuario.getChildren().addAll(helpText, campoUsuarioPronto);
@@ -309,9 +327,7 @@ public class BatalhaTela extends TabuleiroPronto {
         voltar.setOnAction(event -> {
             campoAdversarioMatriz = null;
             campoUsuarioMatriz = null;
-            ComunicacaoOLD.enviarMensagem(ComandosNet.DESCONECTAR.comando);
             BatalhaNavalRMIMain.createScene();
-            ComunicacaoOLD.desconectar();
         });
 
         root.setTop(hBoxTop);
@@ -331,24 +347,49 @@ public class BatalhaTela extends TabuleiroPronto {
                     BatalhaNavalRMIMain.enviarMensagemErro("TU JÁ PERDEU MANO, TE AQUIETA");
                 } else if (contagemAdversario == 0) {
                     BatalhaNavalRMIMain.enviarMensagemErro("O CARA JÁ PERDEU MANO, TE AQUIETA");
-                } else if (ComunicacaoOLD.vezDoUsuario) {
-                    if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
-                        ComunicacaoOLD.enviarMensagem(criarJogada(x, y));
-                        ComunicacaoOLD.vezDoUsuario = false;
-                    } else {
-                        BatalhaNavalRMIMain.enviarMensagemErro("TU JÁ JOGOU AÍ, SEU DOENTE, TU TÁ FICANDO MALUCO?");
+                } else if (nJogador == 1) {
+                    try {
+                        if (BatalhaNavalRMIMain.comunicacao.getJogador1Estado() == Comunicacao.VEZ_DO_JOGADOR) {
+                            if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
+                                String resultado = BatalhaNavalRMIMain.comunicacao.jogada(nJogador, x + "&" + y);
+                                if (resultado.equals("a")) {
+                                    campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
+                                } else {
+                                    campoAdversarioMatriz[x][y].setFill(COR_ERRO);
+                                }
+                            } else {
+                                BatalhaNavalRMIMain.enviarMensagemErro("TU JÁ JOGOU AÍ, SEU DOENTE, TU TÁ FICANDO MALUCO?");
+                            }
+                        } else {
+                            BatalhaNavalRMIMain.enviarMensagemErro("ESPERA O CARA JOGAR, BICHO");
+                        }
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } else {
-                    BatalhaNavalRMIMain.enviarMensagemErro("ESPERA O CARA JOGAR, BICHO");
+                    try {
+                        if (BatalhaNavalRMIMain.comunicacao.getJogador2Estado() == Comunicacao.VEZ_DO_JOGADOR) {
+                            if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
+                                String resultado = BatalhaNavalRMIMain.comunicacao.jogada(nJogador, x + "&" + y);
+                                if (resultado.equals("a")) {
+                                    campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
+                                } else {
+                                    campoAdversarioMatriz[x][y].setFill(COR_ERRO);
+                                }
+                            } else {
+                                BatalhaNavalRMIMain.enviarMensagemErro("TU JÁ JOGOU AÍ, SEU DOENTE, TU TÁ FICANDO MALUCO?");
+                            }
+                        } else {
+                            BatalhaNavalRMIMain.enviarMensagemErro("ESPERA O CARA JOGAR, BICHO");
+                        }
+                    } catch (RemoteException ex) {
+                        Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             });
         }
 
         return rect;
-    }
-
-    private String criarJogada(int x, int y) {
-        return ComandosNet.JOGADA.comando + "&" + x + "&" + y;
     }
 
     private URL getVideo() {

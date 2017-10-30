@@ -1,17 +1,8 @@
 package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
-import batalhanavalrmi.enums.ComandosNet;
 import batalhanavalrmi.rede.Comunicacao;
-import batalhanavalrmi.rede.ComunicacaoOLD;
 import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.MalformedURLException;
-import java.rmi.AccessException;
-import java.rmi.AlreadyBoundException;
-import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -30,7 +21,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public class CriarPartidaTela {
-
+    
     public void iniciarTela() {
         Text texto = new Text("Aguardando oponente");
         texto.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
@@ -66,21 +57,20 @@ public class CriarPartidaTela {
         try {
             BatalhaNavalRMIMain.comunicacao = new Comunicacao();
             Registry registro = LocateRegistry.createRegistry(BatalhaNavalRMIMain.PORTA_PADRAO);
-            Naming.rebind("rmi://10.16.4.72:12345/Comunicador", BatalhaNavalRMIMain.comunicacao);
+            registro.rebind("Comunicador", BatalhaNavalRMIMain.comunicacao);
             
             BatalhaNavalRMIMain.comunicacao.conectar(1);
             BatalhaTela.nJogador = 1;
             
             while (true) {
                 System.out.println("Estado do jogador 2: " + BatalhaNavalRMIMain.comunicacao.getJogador2Estado());
-                if (BatalhaNavalRMIMain.comunicacao.getJogador2Estado() == Comunicacao.CONECTADO) {
+                int estado = BatalhaNavalRMIMain.comunicacao.getJogador2Estado();
+                if (estado == Comunicacao.CONECTADO) {
                     new PreparacaoTela().iniciarTela();
                     break;
                 }
             }
         } catch (RemoteException ex) {
-            Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (MalformedURLException ex) {
             Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
