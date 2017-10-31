@@ -1,8 +1,6 @@
 package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
-import batalhanavalrmi.enums.ComandosNet;
-import batalhanavalrmi.rede.ComunicacaoOLD;
 import batalhanavalrmi.tabuleiros.TabuleiroPreparacao;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
@@ -102,9 +100,10 @@ public class PreparacaoTela extends TabuleiroPreparacao {
             if (paContagem == 0 && ntContagem == 0 && ctContagem == 0 && subContagem == 0) {
                 new Thread(() -> {
                     try {
-                        BatalhaNavalRMIMain.comunicacao.pronto(BatalhaTela.nJogador);
-                        System.out.println("Status jogador 1: " + BatalhaNavalRMIMain.comunicacao.getJogador1Estado());
-                        System.out.println("Status jogador 2: " + BatalhaNavalRMIMain.comunicacao.getJogador2Estado());
+                        BatalhaNavalRMIMain.comunicacaoUsuario.pronto(BatalhaTela.nJogador);
+                        BatalhaNavalRMIMain.comunicacaoUsuario.setCampoJogador(campoMatriz);
+                        //System.out.println("Status jogador 1: " + BatalhaNavalRMIMain.comunicacaoUsuario.getJogador1Estado());
+                        //System.out.println("Status jogador 2: " + BatalhaNavalRMIMain.comunicacaoUsuario.getJogador2Estado());
                         //ComunicacaoOLD.enviarMensagem(ComandosNet.PRONTO.comando);
                         new BatalhaTela().iniciarTela(navios, contagemTotal);
                     } catch (RemoteException ex) {
@@ -118,7 +117,6 @@ public class PreparacaoTela extends TabuleiroPreparacao {
 
         Button voltar = new Button("Sair da partida");
         voltar.setOnAction((ActionEvent) -> {
-            ComunicacaoOLD.enviarMensagem(ComandosNet.DESCONECTAR.comando);
             BatalhaNavalRMIMain.createScene();
         });
 

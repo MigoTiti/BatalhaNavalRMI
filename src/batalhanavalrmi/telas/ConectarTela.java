@@ -1,12 +1,16 @@
 package batalhanavalrmi.telas;
 
 import batalhanavalrmi.BatalhaNavalRMIMain;
-import static batalhanavalrmi.rede.ComunicacaoOLD.socket;
+import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
+import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.geometry.Insets;
@@ -37,7 +41,6 @@ public class ConectarTela {
         Button voltar = new Button("Voltar");
         voltar.setOnAction(event -> {
             BatalhaNavalRMIMain.createScene();
-            socket = null;
         });
 
         HBox hBoxBaixo = new HBox(voltar);
@@ -55,37 +58,17 @@ public class ConectarTela {
 
     private void conectar(String ip) {
         try {
-            BatalhaNavalRMIMain.comunicacao = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + BatalhaNavalRMIMain.PORTA_PADRAO + "/Comunicador");
-            BatalhaNavalRMIMain.comunicacao.conectar(2);
             BatalhaTela.nJogador = 2;
+            BatalhaNavalRMIMain.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            Registry registro = LocateRegistry.createRegistry(BatalhaNavalRMIMain.PORTA_PADRAO_CLIENTE);
+            registro.rebind("Comunicador", BatalhaNavalRMIMain.comunicacaoUsuario);
+            
+            BatalhaNavalRMIMain.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + BatalhaNavalRMIMain.PORTA_PADRAO_SERVIDOR + "/Comunicador");
+            BatalhaNavalRMIMain.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
             
             new PreparacaoTela().iniciarTela();
-        } catch (NotBoundException | MalformedURLException | RemoteException ex) {
+        } catch (NotBoundException | MalformedURLException | RemoteException | UnknownHostException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    /*private static void conectar(String ip) {
-        try {
-            byte[] mensagem = ComandosNet.CONECTADO.getBytes();
-            ComunicacaoOLD.ipAEnviar = InetAddress.getByName(ip);
-            DatagramPacket pacoteAEnviar = new DatagramPacket(mensagem, mensagem.length, ComunicacaoOLD.ipAEnviar, ComunicacaoOLD.portaAEnviar);
-            socket = new DatagramSocket();
-            socket.send(pacoteAEnviar);
-            
-            byte[] buffer = new byte[500];
-            DatagramPacket pacoteResposta = new DatagramPacket(buffer, buffer.length);
-            socket.receive(pacoteResposta);
-
-            String respostaString = new String(pacoteResposta.getData());
-
-            System.out.println(respostaString);
-            new PreparacaoTela().iniciarTela();
-            
-            ComunicacaoOLD.conexaoAberta = true;
-            ComunicacaoOLD.persistirConexao();
-        } catch (IOException ex) {
-            Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }*/
 }

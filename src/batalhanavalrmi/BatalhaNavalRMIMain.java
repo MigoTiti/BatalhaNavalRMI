@@ -28,10 +28,13 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 public class BatalhaNavalRMIMain extends JApplet {
 
-    public static ComunicacaoRMI comunicacao = null;
+    public static ComunicacaoRMI comunicacaoUsuario = null;
+    public static ComunicacaoRMI comunicacaoAdversario = null;
+
     private static final int JFXPANEL_WIDTH_INT = 1000;
     private static final int JFXPANEL_HEIGHT_INT = 700;
-    public static final int PORTA_PADRAO = 12345;
+    public static final int PORTA_PADRAO_SERVIDOR = 12345;
+    public static final int PORTA_PADRAO_CLIENTE = 12346;
     public static JFXPanel fxContainer;
     public static String nickName;
 
@@ -69,6 +72,9 @@ public class BatalhaNavalRMIMain extends JApplet {
     }
 
     public static void createScene() {
+        comunicacaoAdversario = null;
+        comunicacaoUsuario = null;
+
         BorderPane root = new BorderPane();
         VBox vBoxCentro = new VBox();
 
@@ -155,7 +161,7 @@ public class BatalhaNavalRMIMain extends JApplet {
         alert.setContentText(mensagem);
         alert.showAndWait();
     }
-    
+
     public static void enviarMensagemInfo(String mensagem) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Info");

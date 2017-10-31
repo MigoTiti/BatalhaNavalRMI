@@ -1,118 +1,150 @@
 package batalhanavalrmi.rede;
 
+import batalhanavalrmi.BatalhaNavalRMIMain;
+import batalhanavalrmi.telas.BatalhaTela;
 import batalhanavalrmi.util.RectangleCoordenado;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.StringTokenizer;
+import javafx.application.Platform;
 
-public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI{
+public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
-    private int jogador1Estado;
-    private int jogador2Estado;
-    
-    public static RectangleCoordenado[][] jogador1Campo;
-    public static RectangleCoordenado[][] jogador2Campo;
-    
+    private String ipCliente;
+    private String ipServidor;
+
+    private int estadoJogador;
+
+    public int jogadoresConectados;
+
+    public static RectangleCoordenado[][] campoJogador;
+
     public static final int DESCONECTADO = 0;
     public static final int CONECTADO = 1;
     public static final int PRONTO = 2;
     public static final int VEZ_DO_JOGADOR = 3;
     public static final int GANHOU = 4;
-    
-    public Comunicacao() throws RemoteException {
-        this.jogador1Estado = DESCONECTADO;
-        this.jogador2Estado = DESCONECTADO;
-    }
-    
-    @Override
-    public void conectar(int nJogador) throws RemoteException {
+
+    public Comunicacao(String ip, int nJogador) throws RemoteException {
+        this.estadoJogador = CONECTADO;
+        jogadoresConectados = 1;
+
         if (nJogador == 1) {
-            jogador1Estado = CONECTADO;
-            System.out.println("Jogador 1 conectado");
+            this.ipServidor = ip;
         } else {
-            jogador2Estado = CONECTADO;
-            System.out.println("Jogador 2 conectado");
+            this.ipCliente = ip;
         }
     }
 
     @Override
-    public void desconectar(int nJogador) throws RemoteException {
+    public void conectar(String ip, int nJogador) throws RemoteException {
+        jogadoresConectados++;
+
         if (nJogador == 1) {
-            jogador1Estado = DESCONECTADO;
+            this.ipServidor = ip;
         } else {
-            jogador2Estado = DESCONECTADO;
+            this.ipCliente = ip;
         }
+    }
+
+    @Override
+    public void desconectar() throws RemoteException {
+        jogadoresConectados--;
+        Platform.runLater(() -> {
+            BatalhaNavalRMIMain.enviarMensagemErro("O BROTHER SE DESCONECTOU");
+            BatalhaNavalRMIMain.createScene();
+        });
     }
 
     @Override
     public void pronto(int nJogador) throws RemoteException {
         if (nJogador == 1) {
-            jogador1Estado = VEZ_DO_JOGADOR;
+            estadoJogador = VEZ_DO_JOGADOR;
         } else {
-            jogador2Estado = PRONTO;
+            estadoJogador = PRONTO;
         }
     }
 
     @Override
-    public String jogada(int nJogador, String jogada) throws RemoteException {
+    public String jogada(String jogada) throws RemoteException {
         StringTokenizer st = new StringTokenizer(jogada, "&");
         int x = Integer.parseInt(st.nextToken());
         int y = Integer.parseInt(st.nextToken());
-        
-        if (nJogador == 1) {
-            jogador1Estado = PRONTO;
-            jogador2Estado = VEZ_DO_JOGADOR;
-            if (jogador2Campo[x][y].isOcupado()) {
-                return "a";
+
+        estadoJogador = VEZ_DO_JOGADOR;
+
+        Platform.runLater(() -> {
+            BatalhaNavalRMIMain.enviarMensagemInfo("Sua vez");
+        });
+
+        if (campoJogador[x][y].isOcupado()) {
+            BatalhaTela.contagemUsuario--;
+            BatalhaTela.campoUsuarioMatriz[x][y].setFill(BatalhaTela.COR_ACERTO);
+
+            if (BatalhaTela.contagemUsuario == 0) {
+                Platform.runLater(() -> {
+                    BatalhaNavalRMIMain.enviarMensagemInfo("TU PERDEU, OTÁRIO");
+                });
             } else {
-                return "e";
+                Platform.runLater(() -> {
+                    BatalhaNavalRMIMain.enviarMensagemInfo("Sua vez");
+                });
             }
+
+            return "a";
         } else {
-            jogador2Estado = PRONTO;
-            jogador1Estado = VEZ_DO_JOGADOR;
-            if (jogador1Campo[x][y].isOcupado()) {
-                return "a";
-            } else {
-                return "e";
-            }
+            BatalhaTela.campoUsuarioMatriz[x][y].setFill(BatalhaTela.COR_ERRO);
+
+            Platform.runLater(() -> {
+                BatalhaNavalRMIMain.enviarMensagemInfo("Sua vez");
+            });
+
+            return "e";
         }
     }
 
     @Override
-    public int getJogador1Estado() {
-        return jogador1Estado;
+    public int getEstadoJogador() {
+        return estadoJogador;
     }
 
     @Override
-    public int getJogador2Estado() {
-        return jogador2Estado;
-    }
-
-    public void setJogador1Estado(int jogador1Estado) {
-        this.jogador1Estado = jogador1Estado;
-    }
-
-    public void setJogador2Estado(int jogador2Estado) {
-        this.jogador2Estado = jogador2Estado;
+    public void setEstadoJogador(int estadoJogador) {
+        this.estadoJogador = estadoJogador;
     }
 
     @Override
-    public RectangleCoordenado[][] getJogador1Campo() {
-        return jogador1Campo;
+    public RectangleCoordenado[][] getCampoJogador() {
+        return campoJogador;
     }
 
     @Override
-    public RectangleCoordenado[][] getJogador2Campo() {
-        return jogador2Campo;
+    public void setCampoJogador(RectangleCoordenado[][] campoJogador) {
+        Comunicacao.campoJogador = campoJogador;
     }
 
     @Override
-    public void setJogador1Campo(RectangleCoordenado[][] jogador1Campo) {
-        Comunicacao.jogador1Campo = jogador1Campo;
+    public int getJogadoresConectados() {
+        return jogadoresConectados;
     }
 
     @Override
-    public void setJogador2Campo(RectangleCoordenado[][] jogador2Campo) {
-        Comunicacao.jogador2Campo = jogador2Campo;
+    public String getIpCliente() {
+        return ipCliente;
+    }
+
+    @Override
+    public String getIpServidor() {
+        return ipServidor;
+    }
+
+    @Override
+    public void setIpCliente(String ipCliente) {
+        this.ipCliente = ipCliente;
+    }
+
+    @Override
+    public void setIpServidor(String ipServidor) {
+        this.ipServidor = ipServidor;
     }
 }
