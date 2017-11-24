@@ -1,10 +1,10 @@
-package batalhanavalrmi;
+package batalhanavalrmi.telas;
 
 import batalhanavalrmi.rede.ComunicacaoRMI;
-import batalhanavalrmi.telas.ConectarTela;
-import batalhanavalrmi.telas.CriarPartidaTela;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Insets;
@@ -12,9 +12,13 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -26,7 +30,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
-public class BatalhaNavalRMIMain extends JApplet {
+public class TelaInicial extends JApplet {
 
     public static ComunicacaoRMI comunicacaoUsuario = null;
     public static ComunicacaoRMI comunicacaoAdversario = null;
@@ -45,10 +49,10 @@ public class BatalhaNavalRMIMain extends JApplet {
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException | UnsupportedLookAndFeelException e) {
             }
 
-            JFrame frame = new JFrame("BATALHA DOS BARCO");
+            JFrame frame = new JFrame("Jaba Naval");
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            JApplet applet = new BatalhaNavalRMIMain();
+            JApplet applet = new TelaInicial();
             applet.init();
 
             frame.setContentPane(applet.getContentPane());
@@ -68,7 +72,7 @@ public class BatalhaNavalRMIMain extends JApplet {
         fxContainer.setPreferredSize(new Dimension(JFXPANEL_WIDTH_INT, JFXPANEL_HEIGHT_INT));
         add(fxContainer, BorderLayout.CENTER);
 
-        Platform.runLater(BatalhaNavalRMIMain::createScene);
+        Platform.runLater(TelaInicial::createScene);
     }
 
     public static void createScene() {
@@ -137,7 +141,6 @@ public class BatalhaNavalRMIMain extends JApplet {
         criarPartidaButton.setOnAction((event -> {
             if (nomeUsuario.getText() != null && !nomeUsuario.getText().equals("")) {
                 nickName = nomeUsuario.getText();
-                //new BatalhaTela().iniciarTela();
                 new CriarPartidaTela().iniciarTela();
             } else {
                 enviarMensagemErro("Digite um nome de usuário");
@@ -167,6 +170,38 @@ public class BatalhaNavalRMIMain extends JApplet {
         alert.setTitle("Info");
         alert.setHeaderText(null);
         alert.setContentText(mensagem);
+        alert.showAndWait();
+    }
+    
+        public static void exibirException(Exception ex) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Erro");
+        alert.setHeaderText("Exception");
+        alert.setContentText(ex.getMessage());
+
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        ex.printStackTrace(pw);
+        String exceptionText = sw.toString();
+
+        Label label = new Label("The exception stacktrace was:");
+
+        TextArea textArea = new TextArea(exceptionText);
+        textArea.setEditable(false);
+        textArea.setWrapText(true);
+
+        textArea.setMaxWidth(Double.MAX_VALUE);
+        textArea.setMaxHeight(Double.MAX_VALUE);
+        GridPane.setVgrow(textArea, Priority.ALWAYS);
+        GridPane.setHgrow(textArea, Priority.ALWAYS);
+
+        GridPane expContent = new GridPane();
+        expContent.setMaxWidth(Double.MAX_VALUE);
+        expContent.add(label, 0, 0);
+        expContent.add(textArea, 0, 1);
+
+        alert.getDialogPane().setExpandableContent(expContent);
+
         alert.showAndWait();
     }
 }

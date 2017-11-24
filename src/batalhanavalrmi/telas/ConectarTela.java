@@ -1,6 +1,5 @@
 package batalhanavalrmi.telas;
 
-import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
 import java.net.InetAddress;
@@ -40,7 +39,7 @@ public class ConectarTela {
 
         Button voltar = new Button("Voltar");
         voltar.setOnAction(event -> {
-            BatalhaNavalRMIMain.createScene();
+            TelaInicial.createScene();
         });
 
         HBox hBoxBaixo = new HBox(voltar);
@@ -48,7 +47,7 @@ public class ConectarTela {
 
         painel.setBottom(hBoxBaixo);
 
-        BatalhaNavalRMIMain.fxContainer.setScene(new Scene(painel));
+        TelaInicial.fxContainer.setScene(new Scene(painel));
 
         new Thread(() -> {
             System.out.println("Cliente");
@@ -59,12 +58,12 @@ public class ConectarTela {
     private void conectar(String ip) {
         try {
             BatalhaTela.nJogador = 2;
-            BatalhaNavalRMIMain.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
-            Registry registro = LocateRegistry.createRegistry(BatalhaNavalRMIMain.PORTA_PADRAO_CLIENTE);
-            registro.rebind("Comunicador", BatalhaNavalRMIMain.comunicacaoUsuario);
+            TelaInicial.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_CLIENTE);
+            registro.rebind("Comunicador", TelaInicial.comunicacaoUsuario);
             
-            BatalhaNavalRMIMain.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + BatalhaNavalRMIMain.PORTA_PADRAO_SERVIDOR + "/Comunicador");
-            BatalhaNavalRMIMain.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            TelaInicial.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + TelaInicial.PORTA_PADRAO_SERVIDOR + "/Comunicador");
+            TelaInicial.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
             
             new PreparacaoTela().iniciarTela();
         } catch (NotBoundException | MalformedURLException | RemoteException | UnknownHostException ex) {

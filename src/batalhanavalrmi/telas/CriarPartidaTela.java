@@ -1,6 +1,5 @@
 package batalhanavalrmi.telas;
 
-import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
 import java.net.InetAddress;
@@ -40,7 +39,7 @@ public class CriarPartidaTela {
 
         Button voltar = new Button("Voltar");
         voltar.setOnAction(event -> {
-            BatalhaNavalRMIMain.createScene();
+            TelaInicial.createScene();
         });
 
         HBox hBoxBaixo = new HBox(voltar);
@@ -48,7 +47,7 @@ public class CriarPartidaTela {
 
         painel.setBottom(hBoxBaixo);
 
-        BatalhaNavalRMIMain.fxContainer.setScene(new Scene(painel));
+        TelaInicial.fxContainer.setScene(new Scene(painel));
 
         new Thread(() -> {
             System.out.println("Servidor");
@@ -60,16 +59,16 @@ public class CriarPartidaTela {
     private void iniciarServidor() {
         try {
             BatalhaTela.nJogador = 1;
-            BatalhaNavalRMIMain.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
-            Registry registro = LocateRegistry.createRegistry(BatalhaNavalRMIMain.PORTA_PADRAO_SERVIDOR);
-            registro.rebind("Comunicador", BatalhaNavalRMIMain.comunicacaoUsuario);
+            TelaInicial.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_SERVIDOR);
+            registro.rebind("Comunicador", TelaInicial.comunicacaoUsuario);
             
             while (true) {
-                System.out.println("Jogadores conectados: " + BatalhaNavalRMIMain.comunicacaoUsuario.getJogadoresConectados());
-                int estado = BatalhaNavalRMIMain.comunicacaoUsuario.getJogadoresConectados();
+                System.out.println("Jogadores conectados: " + TelaInicial.comunicacaoUsuario.getJogadoresConectados());
+                int estado = TelaInicial.comunicacaoUsuario.getJogadoresConectados();
                 if (estado == 2) {
-                    BatalhaNavalRMIMain.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + BatalhaNavalRMIMain.comunicacaoUsuario.getIpCliente() + ":" + BatalhaNavalRMIMain.PORTA_PADRAO_CLIENTE + "/Comunicador");
-                    BatalhaNavalRMIMain.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+                    TelaInicial.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + TelaInicial.comunicacaoUsuario.getIpCliente() + ":" + TelaInicial.PORTA_PADRAO_CLIENTE + "/Comunicador");
+                    TelaInicial.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
                     
                     new PreparacaoTela().iniciarTela();
                     break;

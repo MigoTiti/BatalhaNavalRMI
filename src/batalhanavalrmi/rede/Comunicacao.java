@@ -1,6 +1,6 @@
 package batalhanavalrmi.rede;
 
-import batalhanavalrmi.BatalhaNavalRMIMain;
+import batalhanavalrmi.telas.TelaInicial;
 import batalhanavalrmi.telas.BatalhaTela;
 import batalhanavalrmi.util.RectangleCoordenado;
 import java.rmi.RemoteException;
@@ -51,8 +51,8 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
     public void desconectar() throws RemoteException {
         jogadoresConectados--;
         Platform.runLater(() -> {
-            BatalhaNavalRMIMain.enviarMensagemErro("O BROTHER SE DESCONECTOU");
-            BatalhaNavalRMIMain.createScene();
+            TelaInicial.enviarMensagemErro("O BROTHER SE DESCONECTOU");
+            TelaInicial.createScene();
         });
     }
 
@@ -74,7 +74,7 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
         estadoJogador = VEZ_DO_JOGADOR;
 
         Platform.runLater(() -> {
-            BatalhaNavalRMIMain.enviarMensagemInfo("Sua vez");
+            TelaInicial.enviarMensagemInfo("Sua vez");
         });
 
         if (campoJogador[x][y].isOcupado()) {
@@ -83,11 +83,11 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
             if (BatalhaTela.contagemUsuario == 0) {
                 Platform.runLater(() -> {
-                    BatalhaNavalRMIMain.enviarMensagemInfo("TU PERDEU, OTÁRIO");
+                    TelaInicial.enviarMensagemInfo("TU PERDEU, OTÁRIO");
                 });
             } else {
                 Platform.runLater(() -> {
-                    BatalhaNavalRMIMain.enviarMensagemInfo("Sua vez");
+                    TelaInicial.enviarMensagemInfo("Sua vez");
                 });
             }
 
@@ -96,7 +96,7 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
             BatalhaTela.campoUsuarioMatriz[x][y].setFill(BatalhaTela.COR_ERRO);
 
             Platform.runLater(() -> {
-                BatalhaNavalRMIMain.enviarMensagemInfo("Sua vez");
+                TelaInicial.enviarMensagemInfo("Sua vez");
             });
 
             return "e";

@@ -1,6 +1,5 @@
 package batalhanavalrmi.telas;
 
-import batalhanavalrmi.BatalhaNavalRMIMain;
 import batalhanavalrmi.tabuleiros.TabuleiroPreparacao;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
@@ -31,9 +30,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Rectangle;
@@ -41,7 +37,6 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.transform.Rotate;
-import javafx.util.Duration;
 
 public class PreparacaoTela extends TabuleiroPreparacao {
 
@@ -59,12 +54,15 @@ public class PreparacaoTela extends TabuleiroPreparacao {
 
     public static boolean pronto = false;
     public static boolean oponentePronto = false;
-
-    Rectangle preview;
-    HBox hBoxVideo;
-    StackPane stackPane;
-
-    Set<RectangleNavio> navios;
+    
+    public static final Color COR_BACKGROUND = Color.TRANSPARENT;
+    
+    private Rectangle preview;
+    
+    private StackPane stackPane;
+    private HBox stub;
+    
+    private final Set<RectangleNavio> navios;
 
     public PreparacaoTela() {
         paContagem = 1;
@@ -100,24 +98,21 @@ public class PreparacaoTela extends TabuleiroPreparacao {
             if (paContagem == 0 && ntContagem == 0 && ctContagem == 0 && subContagem == 0) {
                 new Thread(() -> {
                     try {
-                        BatalhaNavalRMIMain.comunicacaoUsuario.pronto(BatalhaTela.nJogador);
-                        BatalhaNavalRMIMain.comunicacaoUsuario.setCampoJogador(campoMatriz);
-                        //System.out.println("Status jogador 1: " + BatalhaNavalRMIMain.comunicacaoUsuario.getJogador1Estado());
-                        //System.out.println("Status jogador 2: " + BatalhaNavalRMIMain.comunicacaoUsuario.getJogador2Estado());
-                        //ComunicacaoOLD.enviarMensagem(ComandosNet.PRONTO.comando);
-                        new BatalhaTela().iniciarTela(navios, contagemTotal);
+                        TelaInicial.comunicacaoUsuario.pronto(BatalhaTela.nJogador);
+                        TelaInicial.comunicacaoUsuario.setCampoJogador(campoMatriz);
+                        BatalhaTela.getInstance().iniciarTela(navios, contagemTotal);
                     } catch (RemoteException ex) {
                         Logger.getLogger(PreparacaoTela.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }).start();
             } else {
-                BatalhaNavalRMIMain.enviarMensagemErro("Posicione todos os navios");
+                TelaInicial.enviarMensagemErro("Posicione todos os navios");
             }
         });
 
         Button voltar = new Button("Sair da partida");
         voltar.setOnAction((ActionEvent) -> {
-            BatalhaNavalRMIMain.createScene();
+            TelaInicial.createScene();
         });
 
         hBoxTop.getChildren().addAll(voltar, helpText, iniciar);
@@ -147,30 +142,11 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         HBox hBoxCentro = new HBox(vBoxCentro);
         hBoxCentro.setAlignment(Pos.CENTER);
 
-        MediaPlayer videoBackground = new MediaPlayer(
-                new Media(getVideo().toString())
-        );
-
-        videoBackground.setMute(true);
-        videoBackground.setCycleCount(MediaPlayer.INDEFINITE);
-        videoBackground.play();
-        videoBackground.setStartTime(Duration.seconds(0));
-        videoBackground.setStopTime(Duration.seconds(19));
-
-        MediaView mv = new MediaView(videoBackground);
-        mv.setFitHeight(TAMANHO * TAMANHO_CELULA);
-        mv.setFitWidth(TAMANHO * TAMANHO_CELULA);
-        mv.setPreserveRatio(false);
-
-        hBoxVideo = new HBox(mv);
-        hBoxVideo.setAlignment(Pos.CENTER);
-
-        stackPane = new StackPane(hBoxVideo, hBoxCentro);
-
-        //Rectangle clipRect = new Rectangle(TAMANHO * TAMANHO_CELULA, 1000);
-        //clipRect.setTranslateX(232);
-
-        //stackPane.setClip(clipRect);
+        stub = new HBox(new Rectangle(TAMANHO * TAMANHO_CELULA, TAMANHO * TAMANHO_CELULA, Color.GREY));
+        stub.setAlignment(Pos.CENTER);
+        
+        stackPane = new StackPane(stub, hBoxCentro);
+        
         stackPane.setAlignment(Pos.TOP_LEFT);
 
         VBox vBoxDireita = new VBox();
@@ -183,7 +159,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         root.setTop(hBoxTop);
         root.setRight(vBoxDireita);
 
-        BatalhaNavalRMIMain.fxContainer.setScene(new Scene(root));
+        TelaInicial.fxContainer.setScene(new Scene(root));
     }
 
     private GridPane iniciarTelaSelecao() {
@@ -287,7 +263,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
                         preview.setTranslateY(TAMANHO_CELULA * (rect.getyCoordenada() + 3));
                         stackPane.getChildren().add(preview);
                         preview.toBack();
-                        hBoxVideo.toBack();
+                        stub.toBack();
                         break;
                     case 4:
                         preview = new Rectangle(rect.getLayoutX(), rect.getLayoutY(), (TAMANHO_CELULA - 1) * tamanho, TAMANHO_CELULA - 1);
@@ -296,7 +272,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
                         preview.setTranslateY(TAMANHO_CELULA * (rect.getyCoordenada() + 3));
                         stackPane.getChildren().add(preview);
                         preview.toBack();
-                        hBoxVideo.toBack();
+                        stub.toBack();
                         break;
                     case 3:
                         preview = new Rectangle(rect.getLayoutX(), rect.getLayoutY(), (TAMANHO_CELULA - 1) * tamanho, TAMANHO_CELULA - 1);
@@ -305,7 +281,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
                         preview.setTranslateY(TAMANHO_CELULA * (rect.getyCoordenada() + 3));
                         stackPane.getChildren().add(preview);
                         preview.toBack();
-                        hBoxVideo.toBack();
+                        stub.toBack();
                         break;
                     case 2:
                         preview = new Rectangle(rect.getLayoutX(), rect.getLayoutY(), (TAMANHO_CELULA - 1) * tamanho, TAMANHO_CELULA - 1);
@@ -314,7 +290,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
                         preview.setTranslateY(TAMANHO_CELULA * (rect.getyCoordenada() + 3));
                         stackPane.getChildren().add(preview);
                         preview.toBack();
-                        hBoxVideo.toBack();
+                        stub.toBack();
                         break;
                 }
             } else {
@@ -702,10 +678,6 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         });
 
         return rect;
-    }
-
-    private URL getVideo() {
-        return getClass().getResource("recursos/background.mp4");
     }
 
     private URL getPortaAvioes() {
