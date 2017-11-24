@@ -27,12 +27,12 @@ import javafx.scene.text.Text;
 
 public class BatalhaTela extends TabuleiroPronto {
     
-    public static int contagemUsuario;
-    public static int contagemAdversario;
+    private int contagemUsuario;
+    private int contagemAdversario;
 
-    public static boolean pronto = false;
+    private boolean pronto;
 
-    public static int nJogador = 0;
+    private int nJogador;
 
     public static final Color COR_ACERTO = Color.RED;
     public static final Color COR_ERRO = Color.BLUE;
@@ -41,10 +41,11 @@ public class BatalhaTela extends TabuleiroPronto {
     private static BatalhaTela instancia;
     
     private BatalhaTela() {
-        
+        pronto = false;
+        nJogador = 0;
     }
     
-    public static BatalhaTela getInstance() {
+    public static BatalhaTela getInstancia() {
         if (instancia == null)
             instancia = new BatalhaTela();
         
@@ -350,5 +351,37 @@ public class BatalhaTela extends TabuleiroPronto {
         }
 
         return rect;
+    }
+
+    public void setnJogador(int nJogador) {
+        this.nJogador = nJogador;
+    }
+
+    public void setPronto(boolean pronto) {
+        this.pronto = pronto;
+    }
+
+    public int getContagemUsuario() {
+        return contagemUsuario;
+    }
+
+    public int getContagemAdversario() {
+        return contagemAdversario;
+    }
+
+    public int getnJogador() {
+        return nJogador;
+    }
+
+    public boolean isPronto() {
+        return pronto;
+    }
+    
+    public void decrementarContagemUsuario() {
+        contagemUsuario--;
+    }
+    
+    public void decrementarContagemAdveersário() {
+        contagemAdversario--;
     }
 }

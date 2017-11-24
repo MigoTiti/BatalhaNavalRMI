@@ -2,9 +2,7 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
@@ -57,16 +55,18 @@ public class ConectarTela {
 
     private void conectar(String ip) {
         try {
-            BatalhaTela.nJogador = 2;
-            TelaInicial.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            int nJogador = 2;
+            BatalhaTela.getInstancia().setnJogador(nJogador);
+            ComunicacaoRMI comunicadorUsuario = new Comunicacao(nJogador);
+            TelaInicial.comunicacaoUsuario = new Comunicacao(BatalhaTela.getInstancia().getnJogador());
             Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_CLIENTE);
             registro.rebind("Comunicador", TelaInicial.comunicacaoUsuario);
             
             TelaInicial.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + TelaInicial.PORTA_PADRAO_SERVIDOR + "/Comunicador");
-            TelaInicial.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            TelaInicial.comunicacaoAdversario.conectar(BatalhaTela.getInstancia().getnJogador());
             
             new PreparacaoTela().iniciarTela();
-        } catch (NotBoundException | MalformedURLException | RemoteException | UnknownHostException ex) {
+        } catch (NotBoundException | MalformedURLException | RemoteException ex) {
             Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

@@ -1,5 +1,6 @@
 package batalhanavalrmi.telas;
 
+import batalhanavalrmi.rede.ComunicacaoRMI;
 import batalhanavalrmi.tabuleiros.TabuleiroPreparacao;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
@@ -63,6 +64,9 @@ public class PreparacaoTela extends TabuleiroPreparacao {
     private HBox stub;
     
     private final Set<RectangleNavio> navios;
+    
+    private ComunicacaoRMI comunicadorUsuario;
+    private ComunicacaoRMI comunicadorAdversario;
 
     public PreparacaoTela() {
         paContagem = 1;
@@ -98,9 +102,9 @@ public class PreparacaoTela extends TabuleiroPreparacao {
             if (paContagem == 0 && ntContagem == 0 && ctContagem == 0 && subContagem == 0) {
                 new Thread(() -> {
                     try {
-                        TelaInicial.comunicacaoUsuario.pronto(BatalhaTela.nJogador);
+                        TelaInicial.comunicacaoUsuario.pronto(BatalhaTela.getInstancia().getnJogador());
                         TelaInicial.comunicacaoUsuario.setCampoJogador(campoMatriz);
-                        BatalhaTela.getInstance().iniciarTela(navios, contagemTotal);
+                        BatalhaTela.getInstancia().iniciarTela(navios, contagemTotal);
                     } catch (RemoteException ex) {
                         Logger.getLogger(PreparacaoTela.class.getName()).log(Level.SEVERE, null, ex);
                     }

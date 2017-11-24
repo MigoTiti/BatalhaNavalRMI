@@ -10,9 +10,6 @@ import javafx.application.Platform;
 
 public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
-    private String ipCliente;
-    private String ipServidor;
-
     private int estadoJogador;
 
     public int jogadoresConectados;
@@ -25,26 +22,14 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
     public static final int VEZ_DO_JOGADOR = 3;
     public static final int GANHOU = 4;
 
-    public Comunicacao(String ip, int nJogador) throws RemoteException {
+    public Comunicacao(int nJogador) throws RemoteException {
         this.estadoJogador = CONECTADO;
         jogadoresConectados = 1;
-
-        if (nJogador == 1) {
-            this.ipServidor = ip;
-        } else {
-            this.ipCliente = ip;
-        }
     }
 
     @Override
-    public void conectar(String ip, int nJogador) throws RemoteException {
+    public void conectar(int nJogador) throws RemoteException {
         jogadoresConectados++;
-
-        if (nJogador == 1) {
-            this.ipServidor = ip;
-        } else {
-            this.ipCliente = ip;
-        }
     }
 
     @Override
@@ -78,10 +63,10 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
         });
 
         if (campoJogador[x][y].isOcupado()) {
-            BatalhaTela.contagemUsuario--;
-            BatalhaTela.campoUsuarioMatriz[x][y].setFill(BatalhaTela.COR_ACERTO);
+            BatalhaTela.getInstancia().decrementarContagemUsuario();
+            BatalhaTela.getInstancia().getCampoUsuarioMatriz()[x][y].setFill(BatalhaTela.COR_ACERTO);
 
-            if (BatalhaTela.contagemUsuario == 0) {
+            if (BatalhaTela.getInstancia().getContagemAdversario() == 0) {
                 Platform.runLater(() -> {
                     TelaInicial.enviarMensagemInfo("TU PERDEU, OTÁRIO");
                 });
@@ -93,7 +78,7 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
             return "a";
         } else {
-            BatalhaTela.campoUsuarioMatriz[x][y].setFill(BatalhaTela.COR_ERRO);
+            BatalhaTela.getInstancia().getCampoUsuarioMatriz()[x][y].setFill(BatalhaTela.COR_ERRO);
 
             Platform.runLater(() -> {
                 TelaInicial.enviarMensagemInfo("Sua vez");
@@ -126,25 +111,5 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
     @Override
     public int getJogadoresConectados() {
         return jogadoresConectados;
-    }
-
-    @Override
-    public String getIpCliente() {
-        return ipCliente;
-    }
-
-    @Override
-    public String getIpServidor() {
-        return ipServidor;
-    }
-
-    @Override
-    public void setIpCliente(String ipCliente) {
-        this.ipCliente = ipCliente;
-    }
-
-    @Override
-    public void setIpServidor(String ipServidor) {
-        this.ipServidor = ipServidor;
     }
 }

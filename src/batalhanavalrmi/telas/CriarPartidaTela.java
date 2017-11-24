@@ -58,23 +58,23 @@ public class CriarPartidaTela {
     //https://stackoverflow.com/questions/43725556/java-rmi-client-server-chat
     private void iniciarServidor() {
         try {
-            BatalhaTela.nJogador = 1;
-            TelaInicial.comunicacaoUsuario = new Comunicacao(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+            int nJogador = 1;
+            BatalhaTela.getInstancia().setnJogador(nJogador);
+            ComunicacaoRMI comunicadorUsuario = new Comunicacao(nJogador);
             Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_SERVIDOR);
-            registro.rebind("Comunicador", TelaInicial.comunicacaoUsuario);
+            registro.rebind("Comunicador", comunicadorUsuario);
             
             while (true) {
-                System.out.println("Jogadores conectados: " + TelaInicial.comunicacaoUsuario.getJogadoresConectados());
                 int estado = TelaInicial.comunicacaoUsuario.getJogadoresConectados();
                 if (estado == 2) {
                     TelaInicial.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + TelaInicial.comunicacaoUsuario.getIpCliente() + ":" + TelaInicial.PORTA_PADRAO_CLIENTE + "/Comunicador");
-                    TelaInicial.comunicacaoAdversario.conectar(InetAddress.getLocalHost().getHostAddress(), BatalhaTela.nJogador);
+                    TelaInicial.comunicacaoAdversario.conectar(BatalhaTela.getInstancia().getnJogador());
                     
                     new PreparacaoTela().iniciarTela();
                     break;
                 }
             }
-        } catch (RemoteException | UnknownHostException | NotBoundException | MalformedURLException ex) {
+        } catch (RemoteException ex) {
             Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
