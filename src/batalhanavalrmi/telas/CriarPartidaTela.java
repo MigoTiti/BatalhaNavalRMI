@@ -65,17 +65,19 @@ public class CriarPartidaTela {
             registro.rebind("Comunicador", comunicadorUsuario);
             
             while (true) {
-                int estado = TelaInicial.comunicacaoUsuario.getJogadoresConectados();
-                if (estado == 2) {
-                    TelaInicial.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + TelaInicial.comunicacaoUsuario.getIpCliente() + ":" + TelaInicial.PORTA_PADRAO_CLIENTE + "/Comunicador");
-                    TelaInicial.comunicacaoAdversario.conectar(BatalhaTela.getInstancia().getnJogador());
+                boolean oponenteConectado = comunicadorUsuario.isOponenteConectado();
+                Thread.yield();
+                if (oponenteConectado) {
+                    System.out.println("Entrou");
+                    ComunicacaoRMI comunicadorAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + comunicadorUsuario.getIpOponente() + ":" + TelaInicial.PORTA_PADRAO_CLIENTE + "/Comunicador");
+                    comunicadorAdversario.conectar();
                     
                     new PreparacaoTela().iniciarTela();
                     break;
                 }
             }
-        } catch (RemoteException ex) {
-            Logger.getLogger(CriarPartidaTela.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (RemoteException | NotBoundException | MalformedURLException ex) {
+            TelaInicial.exibirException(ex);
         }
     }
 }

@@ -3,6 +3,8 @@ package batalhanavalrmi.rede;
 import batalhanavalrmi.telas.TelaInicial;
 import batalhanavalrmi.telas.BatalhaTela;
 import batalhanavalrmi.util.RectangleCoordenado;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.StringTokenizer;
@@ -12,8 +14,9 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
     private int estadoJogador;
 
-    public int jogadoresConectados;
-
+    private boolean oponenteConectado;
+    private String ipOponente;
+    
     public static RectangleCoordenado[][] campoJogador;
 
     public static final int DESCONECTADO = 0;
@@ -24,17 +27,16 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
     public Comunicacao(int nJogador) throws RemoteException {
         this.estadoJogador = CONECTADO;
-        jogadoresConectados = 1;
     }
 
     @Override
-    public void conectar(int nJogador) throws RemoteException {
-        jogadoresConectados++;
+    public void conectar() throws RemoteException {
+        oponenteConectado = true;
     }
 
     @Override
     public void desconectar() throws RemoteException {
-        jogadoresConectados--;
+        oponenteConectado = false;
         Platform.runLater(() -> {
             TelaInicial.enviarMensagemErro("O BROTHER SE DESCONECTOU");
             TelaInicial.createScene();
@@ -109,7 +111,30 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
     }
 
     @Override
-    public int getJogadoresConectados() {
-        return jogadoresConectados;
+    public boolean isOponenteConectado() throws RemoteException {
+        return oponenteConectado;
+    }
+    
+    @Override
+    public String getIP() throws RemoteException {
+        String ip = "";
+        
+        try {
+            ip = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException ex) {
+            TelaInicial.exibirException(ex);
+        }
+        
+        return ip;
+    }
+
+    @Override
+    public void setIpOponente(String ip) throws RemoteException {
+        ipOponente = ip;
+    }
+
+    @Override
+    public String getIpOponente() throws RemoteException {
+        return ipOponente;
     }
 }

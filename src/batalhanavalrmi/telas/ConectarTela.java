@@ -58,16 +58,16 @@ public class ConectarTela {
             int nJogador = 2;
             BatalhaTela.getInstancia().setnJogador(nJogador);
             ComunicacaoRMI comunicadorUsuario = new Comunicacao(nJogador);
-            TelaInicial.comunicacaoUsuario = new Comunicacao(BatalhaTela.getInstancia().getnJogador());
             Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_CLIENTE);
-            registro.rebind("Comunicador", TelaInicial.comunicacaoUsuario);
+            registro.rebind("Comunicador", comunicadorUsuario);
             
-            TelaInicial.comunicacaoAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + TelaInicial.PORTA_PADRAO_SERVIDOR + "/Comunicador");
-            TelaInicial.comunicacaoAdversario.conectar(BatalhaTela.getInstancia().getnJogador());
+            ComunicacaoRMI comunicadorAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + TelaInicial.PORTA_PADRAO_SERVIDOR + "/Comunicador");
+            comunicadorAdversario.setIpOponente(comunicadorUsuario.getIP());
+            comunicadorAdversario.conectar();
             
             new PreparacaoTela().iniciarTela();
         } catch (NotBoundException | MalformedURLException | RemoteException ex) {
-            Logger.getLogger(ConectarTela.class.getName()).log(Level.SEVERE, null, ex);
+            TelaInicial.exibirException(ex);
         }
     }
 }
