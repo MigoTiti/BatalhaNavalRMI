@@ -2,16 +2,13 @@ package batalhanavalrmi.telas;
 
 import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
-import java.net.InetAddress;
 import java.net.MalformedURLException;
-import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -25,8 +22,10 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public class CriarPartidaTela {
+
+    private ComunicacaoRMI comunicadorAdversario;
     
-    public void iniciarTela() {
+    public void iniciarTela(String nickName) {
         Text texto = new Text("Aguardando oponente");
         texto.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
 
@@ -39,7 +38,13 @@ public class CriarPartidaTela {
 
         Button voltar = new Button("Voltar");
         voltar.setOnAction(event -> {
-            TelaInicial.createScene();
+            try {
+                comunicadorAdversario.desconectar();
+            } catch (RemoteException ex) {
+                
+            }
+            
+            TelaInicial.iniciarTela();
         });
 
         HBox hBoxBaixo = new HBox(voltar);
@@ -51,33 +56,50 @@ public class CriarPartidaTela {
 
         new Thread(() -> {
             System.out.println("Servidor");
-            iniciarServidor();
+            iniciarServidor(nickName);
         }).start();
     }
 
     //https://stackoverflow.com/questions/43725556/java-rmi-client-server-chat
-    private void iniciarServidor() {
+    private void iniciarServidor(String nickName) {
         try {
             int nJogador = 1;
             BatalhaTela.getInstancia().setnJogador(nJogador);
-            ComunicacaoRMI comunicadorUsuario = new Comunicacao(nJogador);
-            Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_SERVIDOR);
+            Comunicacao comunicadorUsuario = new Comunicacao(nickName);
+            comunicadorUsuario.setEstadoJogador(Comunicacao.NOME_CORRETO);
+            Registry registro = LocateRegistry.getRegistry(TelaInicial.PORTA_PADRAO_SERVIDOR);
             registro.rebind("Comunicador", comunicadorUsuario);
-            
+
             while (true) {
-                boolean oponenteConectado = comunicadorUsuario.isOponenteConectado();
                 Thread.yield();
-                if (oponenteConectado) {
-                    System.out.println("Entrou");
-                    ComunicacaoRMI comunicadorAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + comunicadorUsuario.getIpOponente() + ":" + TelaInicial.PORTA_PADRAO_CLIENTE + "/Comunicador");
+                if (comunicadorUsuario.isOponenteConectado()) {
+                    comunicadorAdversario = (ComunicacaoRMI) Naming.lookup("rmi://" + comunicadorUsuario.getIpOponente() + ":" + TelaInicial.PORTA_PADRAO_CLIENTE + "/Comunicador");
                     comunicadorAdversario.conectar();
-                    
-                    new PreparacaoTela().iniciarTela();
-                    break;
+                    while (true) {
+                        Thread.yield();
+                        String nickNameAdversario = comunicadorAdversario.getNickName();
+
+                        if (nickNameAdversario.equals(nickName) && comunicadorAdversario.getEstadoJogador() != Comunicacao.NOME_REPETIDO) {
+                            comunicadorAdversario.setEstadoJogador(Comunicacao.NOME_REPETIDO);
+                        }
+
+                        if (!nickNameAdversario.equals(nickName)) {
+                            comunicadorAdversario.setEstadoJogador(Comunicacao.NOME_CORRETO);
+
+                            comunicadorUsuario.setNickNameAdversario(nickNameAdversario);
+                            comunicadorAdversario.setNickNameAdversario(nickName);
+
+                            new PreparacaoTela().iniciarTela(comunicadorUsuario, comunicadorAdversario);
+                            return;
+                        }
+                    }
                 }
             }
         } catch (RemoteException | NotBoundException | MalformedURLException ex) {
-            TelaInicial.exibirException(ex);
+            Platform.runLater(() -> {
+                TelaInicial.exibirException(ex);
+                TelaInicial.iniciarTela();
+            });
         }
     }
 }

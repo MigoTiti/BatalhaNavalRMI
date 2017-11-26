@@ -1,10 +1,11 @@
 package batalhanavalrmi.telas;
 
-import batalhanavalrmi.rede.ComunicacaoRMI;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Insets;
@@ -32,17 +33,20 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 public class TelaInicial extends JApplet {
 
-    public static ComunicacaoRMI comunicacaoUsuario = null;
-    public static ComunicacaoRMI comunicacaoAdversario = null;
-
     private static final int JFXPANEL_WIDTH_INT = 1000;
     private static final int JFXPANEL_HEIGHT_INT = 700;
     public static final int PORTA_PADRAO_SERVIDOR = 12345;
     public static final int PORTA_PADRAO_CLIENTE = 12346;
     public static JFXPanel fxContainer;
-    public static String nickName;
 
     public static void main(String[] args) {
+        try {
+            LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_CLIENTE);
+            LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_SERVIDOR);
+        } catch (RemoteException ex) {
+            
+        }
+        
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
@@ -72,13 +76,12 @@ public class TelaInicial extends JApplet {
         fxContainer.setPreferredSize(new Dimension(JFXPANEL_WIDTH_INT, JFXPANEL_HEIGHT_INT));
         add(fxContainer, BorderLayout.CENTER);
 
-        Platform.runLater(TelaInicial::createScene);
+        Platform.runLater(TelaInicial::iniciarTela);
     }
 
-    public static void createScene() {
-        comunicacaoAdversario = null;
-        comunicacaoUsuario = null;
-
+    public static void iniciarTela() {
+        BatalhaTela.deletarInstancia();
+        
         BorderPane root = new BorderPane();
         VBox vBoxCentro = new VBox();
 
@@ -121,7 +124,7 @@ public class TelaInicial extends JApplet {
         Button acharPartidaButton = new Button("Conectar");
         acharPartidaButton.setOnAction((ActionEvent) -> {
             if (nomeUsuario.getText() != null && !nomeUsuario.getText().equals("")) {
-                nickName = nomeUsuario.getText();
+                String nickName = nomeUsuario.getText();
                 new ConectarTela().iniciarTela(ipServidorPrimeiroOcteto.getText() + "." + ipServidorSegundoOcteto.getText() + "." + ipServidorTerceiroOcteto.getText() + "." + ipServidorQuartoOcteto.getText(), nickName);
             } else {
                 enviarMensagemErro("Digite um nome de usuário");
@@ -140,8 +143,8 @@ public class TelaInicial extends JApplet {
         Button criarPartidaButton = new Button("Criar partida");
         criarPartidaButton.setOnAction((event -> {
             if (nomeUsuario.getText() != null && !nomeUsuario.getText().equals("")) {
-                nickName = nomeUsuario.getText();
-                new CriarPartidaTela().iniciarTela();
+                String nickName = nomeUsuario.getText();
+                new CriarPartidaTela().iniciarTela(nickName);
             } else {
                 enviarMensagemErro("Digite um nome de usuário");
             }

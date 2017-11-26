@@ -7,7 +7,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.StringTokenizer;
 import javafx.application.Platform;
 
 public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
@@ -16,17 +15,23 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
 
     private boolean oponenteConectado;
     private String ipOponente;
-    
-    public static RectangleCoordenado[][] campoJogador;
+
+    private String nickName;
+    private String nickNameAdversario;
+
+    private RectangleCoordenado[][] campoJogador;
 
     public static final int DESCONECTADO = 0;
     public static final int CONECTADO = 1;
     public static final int PRONTO = 2;
     public static final int VEZ_DO_JOGADOR = 3;
     public static final int GANHOU = 4;
+    public static final int NOME_REPETIDO = 5;
+    public static final int NOME_CORRETO = 6;
 
-    public Comunicacao(int nJogador) throws RemoteException {
+    public Comunicacao(String nickName) throws RemoteException {
         this.estadoJogador = CONECTADO;
+        this.nickName = nickName;
     }
 
     @Override
@@ -38,55 +43,37 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
     public void desconectar() throws RemoteException {
         oponenteConectado = false;
         Platform.runLater(() -> {
-            TelaInicial.enviarMensagemErro("O BROTHER SE DESCONECTOU");
-            TelaInicial.createScene();
+            TelaInicial.enviarMensagemErro("O outro jogador foi desconectado");
+            TelaInicial.iniciarTela();
         });
     }
 
     @Override
-    public void pronto(int nJogador) throws RemoteException {
-        if (nJogador == 1) {
-            estadoJogador = VEZ_DO_JOGADOR;
-        } else {
-            estadoJogador = PRONTO;
-        }
-    }
-
-    @Override
-    public String jogada(String jogada) throws RemoteException {
-        StringTokenizer st = new StringTokenizer(jogada, "&");
-        int x = Integer.parseInt(st.nextToken());
-        int y = Integer.parseInt(st.nextToken());
-
-        estadoJogador = VEZ_DO_JOGADOR;
-
-        Platform.runLater(() -> {
-            TelaInicial.enviarMensagemInfo("Sua vez");
-        });
-
+    public boolean jogada(int x, int y) throws RemoteException {
         if (campoJogador[x][y].isOcupado()) {
             BatalhaTela.getInstancia().decrementarContagemUsuario();
             BatalhaTela.getInstancia().getCampoUsuarioMatriz()[x][y].setFill(BatalhaTela.COR_ACERTO);
 
-            if (BatalhaTela.getInstancia().getContagemAdversario() == 0) {
+            if (BatalhaTela.getInstancia().getContagemUsuario() == 0) {
                 Platform.runLater(() -> {
-                    TelaInicial.enviarMensagemInfo("TU PERDEU, OTÁRIO");
+                    TelaInicial.enviarMensagemInfo("Você perdeu");
                 });
             } else {
+                estadoJogador = VEZ_DO_JOGADOR;
                 Platform.runLater(() -> {
                     TelaInicial.enviarMensagemInfo("Sua vez");
                 });
             }
 
-            return "a";
+            return true;
         } else {
             BatalhaTela.getInstancia().getCampoUsuarioMatriz()[x][y].setFill(BatalhaTela.COR_ERRO);
-
+            estadoJogador = VEZ_DO_JOGADOR;
             Platform.runLater(() -> {
                 TelaInicial.enviarMensagemInfo("Sua vez");
             });
 
-            return "e";
+            return false;
         }
     }
 
@@ -100,31 +87,29 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
         this.estadoJogador = estadoJogador;
     }
 
-    @Override
     public RectangleCoordenado[][] getCampoJogador() {
         return campoJogador;
     }
 
-    @Override
     public void setCampoJogador(RectangleCoordenado[][] campoJogador) {
-        Comunicacao.campoJogador = campoJogador;
+        this.campoJogador = campoJogador;
     }
 
-    @Override
-    public boolean isOponenteConectado() throws RemoteException {
+    public boolean isOponenteConectado() {
         return oponenteConectado;
     }
-    
-    @Override
-    public String getIP() throws RemoteException {
+
+    public String getIP() {
         String ip = "";
-        
+
         try {
             ip = InetAddress.getLocalHost().getHostAddress();
         } catch (UnknownHostException ex) {
-            TelaInicial.exibirException(ex);
+            Platform.runLater(() -> {
+                TelaInicial.exibirException(ex);
+            });
         }
-        
+
         return ip;
     }
 
@@ -133,8 +118,25 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
         ipOponente = ip;
     }
 
-    @Override
-    public String getIpOponente() throws RemoteException {
+    public String getIpOponente() {
         return ipOponente;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    @Override
+    public String getNickName() throws RemoteException {
+        return nickName;
+    }
+
+    @Override
+    public void setNickNameAdversario(String nickNameAdversario) throws RemoteException {
+        this.nickNameAdversario = nickNameAdversario;
+    }
+
+    public String getNickNameAdversario() {
+        return nickNameAdversario;
     }
 }

@@ -8,13 +8,14 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Optional;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ProgressIndicator;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -24,7 +25,12 @@ import javafx.scene.text.Text;
 
 public class ConectarTela {
 
-    public void iniciarTela(String ip, String nickname) {
+    private Comunicacao comunicadorUsuario;
+    private ComunicacaoRMI comunicadorAdversario;
+    
+    boolean estaEmDialogoDeErro = false;
+
+    public void iniciarTela(String ip, String nickName) {
         Text texto = new Text("Tentando conexão com: " + ip);
         texto.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
 
@@ -37,7 +43,13 @@ public class ConectarTela {
 
         Button voltar = new Button("Voltar");
         voltar.setOnAction(event -> {
-            TelaInicial.createScene();
+            try {
+                comunicadorAdversario.desconectar();
+            } catch (RemoteException ex) {
+                
+            }
+            
+            TelaInicial.iniciarTela();
         });
 
         HBox hBoxBaixo = new HBox(voltar);
@@ -49,25 +61,48 @@ public class ConectarTela {
 
         new Thread(() -> {
             System.out.println("Cliente");
-            conectar(ip);
+            conectar(ip, nickName);
         }).start();
     }
 
-    private void conectar(String ip) {
+    private void conectar(String ip, String nickName) {
         try {
             int nJogador = 2;
             BatalhaTela.getInstancia().setnJogador(nJogador);
-            ComunicacaoRMI comunicadorUsuario = new Comunicacao(nJogador);
-            Registry registro = LocateRegistry.createRegistry(TelaInicial.PORTA_PADRAO_CLIENTE);
+            comunicadorUsuario = new Comunicacao(nickName);
+            Registry registro = LocateRegistry.getRegistry(TelaInicial.PORTA_PADRAO_CLIENTE);
             registro.rebind("Comunicador", comunicadorUsuario);
-            
-            ComunicacaoRMI comunicadorAdversario = (ComunicacaoRMI)Naming.lookup("rmi://" + ip + ":" + TelaInicial.PORTA_PADRAO_SERVIDOR + "/Comunicador");
+
+            comunicadorAdversario = (ComunicacaoRMI) Naming.lookup("rmi://" + ip + ":" + TelaInicial.PORTA_PADRAO_SERVIDOR + "/Comunicador");
             comunicadorAdversario.setIpOponente(comunicadorUsuario.getIP());
             comunicadorAdversario.conectar();
-            
-            new PreparacaoTela().iniciarTela();
+
+            while (true) {
+                Thread.yield();
+                if (comunicadorUsuario.getEstadoJogador() == Comunicacao.NOME_REPETIDO && !estaEmDialogoDeErro) {
+                    estaEmDialogoDeErro = true;
+                    Platform.runLater(() -> {
+                        TextInputDialog dialog = new TextInputDialog("");
+                        dialog.setTitle("Apelido repetido");
+                        dialog.setHeaderText("O apelido escolhido já está sendo usado");
+                        dialog.setContentText("Escolha outro apelido: ");
+                        Optional<String> result = dialog.showAndWait();
+                        if (result.isPresent()) {
+                            comunicadorUsuario.setNickName(result.get());
+                            estaEmDialogoDeErro = false;
+                        }
+                    });
+                } else if (comunicadorUsuario.getEstadoJogador() == Comunicacao.NOME_CORRETO) {
+                    new PreparacaoTela().iniciarTela(comunicadorUsuario, comunicadorAdversario);
+                    return;
+                }
+            }
+
         } catch (NotBoundException | MalformedURLException | RemoteException ex) {
-            TelaInicial.exibirException(ex);
+            Platform.runLater(() -> {
+                TelaInicial.exibirException(ex);
+                TelaInicial.iniciarTela();
+            });
         }
     }
 }

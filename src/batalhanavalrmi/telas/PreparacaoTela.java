@@ -1,5 +1,6 @@
 package batalhanavalrmi.telas;
 
+import batalhanavalrmi.rede.Comunicacao;
 import batalhanavalrmi.rede.ComunicacaoRMI;
 import batalhanavalrmi.tabuleiros.TabuleiroPreparacao;
 import batalhanavalrmi.util.RectangleCoordenado;
@@ -8,8 +9,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -45,7 +45,7 @@ public class PreparacaoTela extends TabuleiroPreparacao {
     private int ntContagem;
     private int ctContagem;
     private int subContagem;
-    
+
     private final int contagemTotal;
 
     private final Text paContagemText;
@@ -55,17 +55,17 @@ public class PreparacaoTela extends TabuleiroPreparacao {
 
     public static boolean pronto = false;
     public static boolean oponentePronto = false;
-    
+
     public static final Color COR_BACKGROUND = Color.TRANSPARENT;
-    
+
     private Rectangle preview;
-    
+
     private StackPane stackPane;
     private HBox stub;
-    
+
     private final Set<RectangleNavio> navios;
-    
-    private ComunicacaoRMI comunicadorUsuario;
+
+    private Comunicacao comunicadorUsuario;
     private ComunicacaoRMI comunicadorAdversario;
 
     public PreparacaoTela() {
@@ -73,9 +73,9 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         ntContagem = 1;
         ctContagem = 1;
         subContagem = 1;
-        
+
         contagemTotal = (paContagem * 5) + (ntContagem * 4) + (ctContagem * 3) + (subContagem * 2);
-        
+
         navios = new HashSet<>();
 
         paContagemText = new Text(" x" + paContagem);
@@ -84,7 +84,10 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         subContagemText = new Text(" x" + subContagem);
     }
 
-    public void iniciarTela() {
+    public void iniciarTela(Comunicacao comunicadorUsuario, ComunicacaoRMI comunicadorAdversario) {
+        this.comunicadorUsuario = comunicadorUsuario;
+        this.comunicadorAdversario = comunicadorAdversario;
+
         BorderPane root = new BorderPane();
 
         HBox hBoxTop = new HBox();
@@ -101,22 +104,49 @@ public class PreparacaoTela extends TabuleiroPreparacao {
         iniciar.setOnAction(evento -> {
             if (paContagem == 0 && ntContagem == 0 && ctContagem == 0 && subContagem == 0) {
                 new Thread(() -> {
-                    try {
-                        TelaInicial.comunicacaoUsuario.pronto(BatalhaTela.getInstancia().getnJogador());
-                        TelaInicial.comunicacaoUsuario.setCampoJogador(campoMatriz);
-                        BatalhaTela.getInstancia().iniciarTela(navios, contagemTotal);
-                    } catch (RemoteException ex) {
-                        Logger.getLogger(PreparacaoTela.class.getName()).log(Level.SEVERE, null, ex);
+                    comunicadorUsuario.setEstadoJogador(Comunicacao.PRONTO);
+                    comunicadorUsuario.setCampoJogador(campoMatriz);
+                    boolean erroExibido = false;
+                    while (true) {
+                        try {
+                            if (comunicadorAdversario.getEstadoJogador() != Comunicacao.PRONTO) {
+                                if (!erroExibido) {
+                                    erroExibido = true;
+                                    Platform.runLater(() -> {
+                                        TelaInicial.enviarMensagemInfo("Quando o outro jogador estiver pronto, o jogo iniciará automaticamente");
+                                    });
+                                }
+                            } else {
+                                BatalhaTela.getInstancia().iniciarTela(navios, contagemTotal, this.comunicadorUsuario, this.comunicadorAdversario);
+                                return;
+                            }
+                        } catch (RemoteException ex) {
+                            this.comunicadorAdversario = null;
+                            this.comunicadorUsuario = null;
+                            
+                            Platform.runLater(() -> {
+                                TelaInicial.exibirException(ex);
+                                TelaInicial.iniciarTela();
+                            });
+                        }
                     }
                 }).start();
             } else {
-                TelaInicial.enviarMensagemErro("Posicione todos os navios");
+                Platform.runLater(() -> {
+                    TelaInicial.enviarMensagemErro("Posicione todos os navios no campo");
+                });
             }
         });
 
         Button voltar = new Button("Sair da partida");
         voltar.setOnAction((ActionEvent) -> {
-            TelaInicial.createScene();
+            try {
+                this.comunicadorAdversario.desconectar();
+            } catch (RemoteException ex) {
+                
+            }
+            
+            TelaInicial.iniciarTela();
         });
 
         hBoxTop.getChildren().addAll(voltar, helpText, iniciar);
@@ -148,9 +178,9 @@ public class PreparacaoTela extends TabuleiroPreparacao {
 
         stub = new HBox(new Rectangle(TAMANHO * TAMANHO_CELULA, TAMANHO * TAMANHO_CELULA, Color.GREY));
         stub.setAlignment(Pos.CENTER);
-        
+
         stackPane = new StackPane(stub, hBoxCentro);
-        
+
         stackPane.setAlignment(Pos.TOP_LEFT);
 
         VBox vBoxDireita = new VBox();

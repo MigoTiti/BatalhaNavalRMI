@@ -1,6 +1,7 @@
 package batalhanavalrmi.telas;
 
 import batalhanavalrmi.rede.Comunicacao;
+import batalhanavalrmi.rede.ComunicacaoRMI;
 import batalhanavalrmi.tabuleiros.TabuleiroPronto;
 import batalhanavalrmi.util.RectangleCoordenado;
 import batalhanavalrmi.util.RectangleNavio;
@@ -26,11 +27,9 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 
 public class BatalhaTela extends TabuleiroPronto {
-    
+
     private int contagemUsuario;
     private int contagemAdversario;
-
-    private boolean pronto;
 
     private int nJogador;
 
@@ -39,275 +38,287 @@ public class BatalhaTela extends TabuleiroPronto {
     public static final Color COR_BACKGROUND = Color.GREY;
 
     private static BatalhaTela instancia;
-    
+
+    private Comunicacao comunicadorUsuario;
+    private ComunicacaoRMI comunicadorAdversario;
+
     private BatalhaTela() {
-        pronto = false;
         nJogador = 0;
     }
-    
+
     public static BatalhaTela getInstancia() {
-        if (instancia == null)
+        if (instancia == null) {
             instancia = new BatalhaTela();
-        
+        }
+
         return instancia;
     }
-    
+
     public static void deletarInstancia() {
         instancia = null;
     }
-    
-    public void iniciarTela(Set<RectangleNavio> naviosUsuario, int contagem) {
-        contagemUsuario = contagem;
-        contagemAdversario = contagem;
 
-        BorderPane root = new BorderPane();
+    public void iniciarTela(Set<RectangleNavio> naviosUsuario, int contagem, Comunicacao comunicadorUsuario, ComunicacaoRMI comunicadorAdversario) {
+        try {
+            contagemUsuario = contagem;
+            contagemAdversario = contagem;
 
-        VBox vboxUsuario = new VBox();
-        VBox vboxAdversario = new VBox();
+            this.comunicadorAdversario = comunicadorAdversario;
+            this.comunicadorUsuario = comunicadorUsuario;
 
-        vboxUsuario.setSpacing(20);
-        vboxAdversario.setSpacing(20);
+            BorderPane root = new BorderPane();
 
-        vboxUsuario.setAlignment(Pos.CENTER);
-        vboxAdversario.setAlignment(Pos.CENTER);
+            VBox vboxUsuario = new VBox();
+            VBox vboxAdversario = new VBox();
 
-        Text helpText = new Text(TelaInicial.nickName);
-        helpText.setFill(Color.BLACK);
-        helpText.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
+            vboxUsuario.setSpacing(20);
+            vboxAdversario.setSpacing(20);
 
-        Text helpText2 = new Text("Adversário");
-        helpText2.setFill(Color.BLACK);
-        helpText2.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
+            vboxUsuario.setAlignment(Pos.CENTER);
+            vboxAdversario.setAlignment(Pos.CENTER);
 
-        campoAdversario = new GridPane();
-        campoUsuario = new GridPane();
-        campoAdversario.setGridLinesVisible(true);
-        campoUsuario.setGridLinesVisible(true);
-        campoAdversario.setAlignment(Pos.CENTER);
-        campoUsuario.setAlignment(Pos.CENTER);
+            Text helpText = new Text(comunicadorUsuario.getNickName());
+            helpText.setFill(Color.BLACK);
+            helpText.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
 
-        for (int i = 0; i < TAMANHO; i++) {
-            campoAdversario.getColumnConstraints().add(new ColumnConstraints(TAMANHO_CELULA));
-            campoUsuario.getColumnConstraints().add(new ColumnConstraints(TAMANHO_CELULA));
+            Text helpText2 = new Text(comunicadorUsuario.getNickNameAdversario());
+            helpText2.setFill(Color.BLACK);
+            helpText2.setFont(Font.font("Arial", FontWeight.NORMAL, 20));
 
-            campoAdversario.getRowConstraints().add(new RowConstraints(TAMANHO_CELULA));
-            campoUsuario.getRowConstraints().add(new RowConstraints(TAMANHO_CELULA));
-        }
+            campoAdversario = new GridPane();
+            campoUsuario = new GridPane();
+            campoAdversario.setGridLinesVisible(true);
+            campoUsuario.setGridLinesVisible(true);
+            campoAdversario.setAlignment(Pos.CENTER);
+            campoUsuario.setAlignment(Pos.CENTER);
 
-        campoUsuarioMatriz = new RectangleCoordenado[TAMANHO][TAMANHO];
-        campoAdversarioMatriz = new RectangleCoordenado[TAMANHO][TAMANHO];
+            for (int i = 0; i < TAMANHO; i++) {
+                campoAdversario.getColumnConstraints().add(new ColumnConstraints(TAMANHO_CELULA));
+                campoUsuario.getColumnConstraints().add(new ColumnConstraints(TAMANHO_CELULA));
 
-        for (int i = 0; i < TAMANHO; i++) {
-            for (int j = 0; j < TAMANHO; j++) {
-                RectangleCoordenado rectUsuario = gerarRect(i, j, true);
-                campoUsuario.add(rectUsuario, i, j);
-                campoUsuarioMatriz[i][j] = rectUsuario;
-
-                RectangleCoordenado rectAdversario = gerarRect(i, j, false);
-                campoAdversario.add(rectAdversario, i, j);
-                campoAdversarioMatriz[i][j] = rectAdversario;
+                campoAdversario.getRowConstraints().add(new RowConstraints(TAMANHO_CELULA));
+                campoUsuario.getRowConstraints().add(new RowConstraints(TAMANHO_CELULA));
             }
-        }
 
-        StackPane campoUsuarioPronto = new StackPane();
-        StackPane campoAdversarioPronto = new StackPane();
+            campoUsuarioMatriz = new RectangleCoordenado[TAMANHO][TAMANHO];
+            campoAdversarioMatriz = new RectangleCoordenado[TAMANHO][TAMANHO];
 
-        VBox vBoxCampoUsuario = new VBox();
-        vBoxCampoUsuario.setAlignment(Pos.CENTER);
-        vBoxCampoUsuario.getChildren().addAll(campoUsuario);
+            for (int i = 0; i < TAMANHO; i++) {
+                for (int j = 0; j < TAMANHO; j++) {
+                    RectangleCoordenado rectUsuario = gerarRect(i, j, true);
+                    campoUsuario.add(rectUsuario, i, j);
+                    campoUsuarioMatriz[i][j] = rectUsuario;
 
-        VBox vBoxCampoAdversario = new VBox();
-        vBoxCampoAdversario.setAlignment(Pos.CENTER);
-        vBoxCampoAdversario.getChildren().addAll(campoAdversario);
-
-        HBox hBoxCampoUsuario = new HBox(vBoxCampoUsuario);
-        hBoxCampoUsuario.setAlignment(Pos.CENTER);
-
-        HBox hBoxCampoAdversario = new HBox(vBoxCampoAdversario);
-        hBoxCampoAdversario.setAlignment(Pos.CENTER);
-
-        campoUsuarioPronto.getChildren().addAll(hBoxCampoUsuario);
-
-        Platform.runLater(() -> {
-            naviosUsuario.stream().forEach((rectangleNavio) -> {
-                rectangleNavio.setTranslateX(rectangleNavio.getTranslateX() - ((TAMANHO_CELULA * 6) - 7));
-                rectangleNavio.setTranslateY(rectangleNavio.getTranslateY() - (TAMANHO_CELULA * 3));
-                campoUsuarioPronto.getChildren().add(rectangleNavio);
-
-                int x = rectangleNavio.getxCoordenada();
-                int y = rectangleNavio.getyCoordenada();
-
-                campoUsuarioMatriz[x][y].setOcupado(true);
-
-                Color corAPreencher = COR_BACKGROUND;
-
-                campoUsuarioMatriz[x][y].setFill(corAPreencher);
-
-                switch (rectangleNavio.getTamanho()) {
-                    case 5:
-                        switch (rectangleNavio.getRotacao()) {
-                            case 1:
-                                campoUsuarioMatriz[x + 1][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x + 2][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 2][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x + 3][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 3][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x + 4][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 4][y].setFill(corAPreencher);
-                                break;
-                            case 2:
-                                campoUsuarioMatriz[x][y + 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y + 2].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 2].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y + 3].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 3].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y + 4].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 4].setFill(corAPreencher);
-                                break;
-                            case 3:
-                                campoUsuarioMatriz[x - 1][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x - 2][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 2][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x - 3][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 3][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x - 4][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 4][y].setFill(corAPreencher);
-                                break;
-                            case 4:
-                                campoUsuarioMatriz[x][y - 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y - 2].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 2].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y - 3].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 3].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y - 4].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 4].setFill(corAPreencher);
-                                break;
-                        }
-                        break;
-                    case 4:
-                        switch (rectangleNavio.getRotacao()) {
-                            case 1:
-                                campoUsuarioMatriz[x + 1][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x + 2][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 2][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x + 3][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 3][y].setFill(corAPreencher);
-                                break;
-                            case 2:
-                                campoUsuarioMatriz[x][y + 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y + 2].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 2].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y + 3].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 3].setFill(corAPreencher);
-                                break;
-                            case 3:
-                                campoUsuarioMatriz[x - 1][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x - 2][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 2][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x - 3][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 3][y].setFill(corAPreencher);
-                                break;
-                            case 4:
-                                campoUsuarioMatriz[x][y - 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y - 2].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 2].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y - 3].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 3].setFill(corAPreencher);
-                                break;
-                        }
-                        break;
-                    case 3:
-                        switch (rectangleNavio.getRotacao()) {
-                            case 1:
-                                campoUsuarioMatriz[x + 1][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x + 2][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 2][y].setFill(corAPreencher);
-                                break;
-                            case 2:
-                                campoUsuarioMatriz[x][y + 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y + 2].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 2].setFill(corAPreencher);
-                                break;
-                            case 3:
-                                campoUsuarioMatriz[x - 1][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
-                                campoUsuarioMatriz[x - 2][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 2][y].setFill(corAPreencher);
-                                break;
-                            case 4:
-                                campoUsuarioMatriz[x][y - 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
-                                campoUsuarioMatriz[x][y - 2].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 2].setFill(corAPreencher);
-                                break;
-                        }
-                        break;
-                    case 2:
-                        switch (rectangleNavio.getRotacao()) {
-                            case 1:
-                                campoUsuarioMatriz[x + 1][y].setOcupado(true);
-                                campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
-                                break;
-                            case 2:
-                                campoUsuarioMatriz[x][y + 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
-                                break;
-                            case 3:
-                                campoUsuarioMatriz[x - 1][y].setOcupado(false);
-                                campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
-                                break;
-                            case 4:
-                                campoUsuarioMatriz[x][y - 1].setOcupado(true);
-                                campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
-                                break;
-                        }
-                        break;
+                    RectangleCoordenado rectAdversario = gerarRect(i, j, false);
+                    campoAdversario.add(rectAdversario, i, j);
+                    campoAdversarioMatriz[i][j] = rectAdversario;
                 }
-            });
-        });
-
-        campoAdversarioPronto.getChildren().addAll(hBoxCampoAdversario);
-
-        vboxUsuario.getChildren().addAll(helpText, campoUsuarioPronto);
-        vboxAdversario.getChildren().addAll(helpText2, campoAdversarioPronto);
-
-        HBox hBoxCompleto = new HBox(vboxUsuario, vboxAdversario);
-        hBoxCompleto.setSpacing(50);
-        hBoxCompleto.setAlignment(Pos.CENTER);
-        campoUsuarioPronto.setAlignment(Pos.TOP_LEFT);
-        campoAdversarioPronto.setAlignment(Pos.TOP_LEFT);
-
-        root.setCenter(hBoxCompleto);
-
-        Button voltar = new Button("Sair da partida");
-        HBox hBoxTop = new HBox(voltar);
-        hBoxTop.setPadding(new Insets(20));
-        voltar.setOnAction(event -> {
-            try {
-                campoAdversarioMatriz = null;
-                campoUsuarioMatriz = null;
-                TelaInicial.comunicacaoUsuario = null;
-                TelaInicial.comunicacaoAdversario.desconectar();
-                TelaInicial.createScene();
-            } catch (RemoteException ex) {
-                Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
             }
-        });
 
-        root.setTop(hBoxTop);
+            StackPane campoUsuarioPronto = new StackPane();
+            StackPane campoAdversarioPronto = new StackPane();
 
-        TelaInicial.fxContainer.setScene(new Scene(root));
-        pronto = true;
+            VBox vBoxCampoUsuario = new VBox();
+            vBoxCampoUsuario.setAlignment(Pos.CENTER);
+            vBoxCampoUsuario.getChildren().addAll(campoUsuario);
+
+            VBox vBoxCampoAdversario = new VBox();
+            vBoxCampoAdversario.setAlignment(Pos.CENTER);
+            vBoxCampoAdversario.getChildren().addAll(campoAdversario);
+
+            HBox hBoxCampoUsuario = new HBox(vBoxCampoUsuario);
+            hBoxCampoUsuario.setAlignment(Pos.CENTER);
+
+            HBox hBoxCampoAdversario = new HBox(vBoxCampoAdversario);
+            hBoxCampoAdversario.setAlignment(Pos.CENTER);
+
+            campoUsuarioPronto.getChildren().addAll(hBoxCampoUsuario);
+
+            Platform.runLater(() -> {
+                naviosUsuario.stream().forEach((rectangleNavio) -> {
+                    rectangleNavio.setTranslateX(rectangleNavio.getTranslateX() - ((TAMANHO_CELULA * 6) - 7));
+                    rectangleNavio.setTranslateY(rectangleNavio.getTranslateY() - (TAMANHO_CELULA * 3));
+                    campoUsuarioPronto.getChildren().add(rectangleNavio);
+
+                    int x = rectangleNavio.getxCoordenada();
+                    int y = rectangleNavio.getyCoordenada();
+
+                    campoUsuarioMatriz[x][y].setOcupado(true);
+
+                    Color corAPreencher = COR_BACKGROUND;
+
+                    campoUsuarioMatriz[x][y].setFill(corAPreencher);
+
+                    switch (rectangleNavio.getTamanho()) {
+                        case 5:
+                            switch (rectangleNavio.getRotacao()) {
+                                case 1:
+                                    campoUsuarioMatriz[x + 1][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x + 2][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 2][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x + 3][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 3][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x + 4][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 4][y].setFill(corAPreencher);
+                                    break;
+                                case 2:
+                                    campoUsuarioMatriz[x][y + 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y + 2].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 2].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y + 3].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 3].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y + 4].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 4].setFill(corAPreencher);
+                                    break;
+                                case 3:
+                                    campoUsuarioMatriz[x - 1][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x - 2][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 2][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x - 3][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 3][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x - 4][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 4][y].setFill(corAPreencher);
+                                    break;
+                                case 4:
+                                    campoUsuarioMatriz[x][y - 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y - 2].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 2].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y - 3].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 3].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y - 4].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 4].setFill(corAPreencher);
+                                    break;
+                            }
+                            break;
+                        case 4:
+                            switch (rectangleNavio.getRotacao()) {
+                                case 1:
+                                    campoUsuarioMatriz[x + 1][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x + 2][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 2][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x + 3][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 3][y].setFill(corAPreencher);
+                                    break;
+                                case 2:
+                                    campoUsuarioMatriz[x][y + 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y + 2].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 2].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y + 3].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 3].setFill(corAPreencher);
+                                    break;
+                                case 3:
+                                    campoUsuarioMatriz[x - 1][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x - 2][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 2][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x - 3][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 3][y].setFill(corAPreencher);
+                                    break;
+                                case 4:
+                                    campoUsuarioMatriz[x][y - 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y - 2].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 2].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y - 3].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 3].setFill(corAPreencher);
+                                    break;
+                            }
+                            break;
+                        case 3:
+                            switch (rectangleNavio.getRotacao()) {
+                                case 1:
+                                    campoUsuarioMatriz[x + 1][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x + 2][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 2][y].setFill(corAPreencher);
+                                    break;
+                                case 2:
+                                    campoUsuarioMatriz[x][y + 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y + 2].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 2].setFill(corAPreencher);
+                                    break;
+                                case 3:
+                                    campoUsuarioMatriz[x - 1][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x - 2][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 2][y].setFill(corAPreencher);
+                                    break;
+                                case 4:
+                                    campoUsuarioMatriz[x][y - 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
+                                    campoUsuarioMatriz[x][y - 2].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 2].setFill(corAPreencher);
+                                    break;
+                            }
+                            break;
+                        case 2:
+                            switch (rectangleNavio.getRotacao()) {
+                                case 1:
+                                    campoUsuarioMatriz[x + 1][y].setOcupado(true);
+                                    campoUsuarioMatriz[x + 1][y].setFill(corAPreencher);
+                                    break;
+                                case 2:
+                                    campoUsuarioMatriz[x][y + 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y + 1].setFill(corAPreencher);
+                                    break;
+                                case 3:
+                                    campoUsuarioMatriz[x - 1][y].setOcupado(false);
+                                    campoUsuarioMatriz[x - 1][y].setFill(corAPreencher);
+                                    break;
+                                case 4:
+                                    campoUsuarioMatriz[x][y - 1].setOcupado(true);
+                                    campoUsuarioMatriz[x][y - 1].setFill(corAPreencher);
+                                    break;
+                            }
+                            break;
+                    }
+                });
+            });
+
+            campoAdversarioPronto.getChildren().addAll(hBoxCampoAdversario);
+
+            vboxUsuario.getChildren().addAll(helpText, campoUsuarioPronto);
+            vboxAdversario.getChildren().addAll(helpText2, campoAdversarioPronto);
+
+            HBox hBoxCompleto = new HBox(vboxUsuario, vboxAdversario);
+            hBoxCompleto.setSpacing(50);
+            hBoxCompleto.setAlignment(Pos.CENTER);
+            campoUsuarioPronto.setAlignment(Pos.TOP_LEFT);
+            campoAdversarioPronto.setAlignment(Pos.TOP_LEFT);
+
+            root.setCenter(hBoxCompleto);
+
+            Button voltar = new Button("Sair da partida");
+            HBox hBoxTop = new HBox(voltar);
+            hBoxTop.setPadding(new Insets(20));
+            voltar.setOnAction(event -> {
+                try {
+                    this.comunicadorAdversario.desconectar();
+                } catch (RemoteException ex) {
+
+                }
+
+                TelaInicial.iniciarTela();
+            });
+
+            root.setTop(hBoxTop);
+
+            TelaInicial.fxContainer.setScene(new Scene(root));
+
+            if (nJogador == 1) {
+                comunicadorUsuario.setEstadoJogador(Comunicacao.VEZ_DO_JOGADOR);
+            }
+
+        } catch (RemoteException ex) {
+            Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private RectangleCoordenado gerarRect(int x, int y, boolean usuario) {
@@ -318,34 +329,38 @@ public class BatalhaTela extends TabuleiroPronto {
         if (!usuario) {
             rect.setOnMouseClicked(event -> {
                 if (contagemUsuario == 0) {
-                    TelaInicial.enviarMensagemErro("TU JÁ PERDEU MANO, TE AQUIETA");
+
                 } else if (contagemAdversario == 0) {
-                    TelaInicial.enviarMensagemErro("O CARA JÁ PERDEU MANO, TE AQUIETA");
-                } else {
-                    try {
-                        if (TelaInicial.comunicacaoUsuario.getEstadoJogador() == Comunicacao.VEZ_DO_JOGADOR) {
-                            if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
-                                try {
-                                    String resultado = TelaInicial.comunicacaoAdversario.jogada(x + "&" + y);
-                                    TelaInicial.comunicacaoUsuario.setEstadoJogador(Comunicacao.PRONTO);
-                                    if (resultado.equals("a")) {
-                                        contagemAdversario--;
-                                        campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
-                                    } else {
-                                        campoAdversarioMatriz[x][y].setFill(COR_ERRO);
-                                    }
-                                } catch (RemoteException ex) {
-                                    Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
+
+                } else if (comunicadorUsuario.getEstadoJogador() == Comunicacao.VEZ_DO_JOGADOR) {
+                    if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
+                        try {
+                            boolean acertou = comunicadorAdversario.jogada(x, y);
+                            comunicadorUsuario.setEstadoJogador(Comunicacao.PRONTO);
+                            if (acertou) {
+                                contagemAdversario--;
+                                campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
+
+                                if (contagemAdversario == 0) {
+                                    TelaInicial.enviarMensagemInfo("Você ganhou!");
                                 }
                             } else {
-                                TelaInicial.enviarMensagemErro("TU JÁ JOGOU AÍ, SEU DOENTE, TU TÁ FICANDO MALUCO?");
+                                campoAdversarioMatriz[x][y].setFill(COR_ERRO);
                             }
-                        } else {
-                            TelaInicial.enviarMensagemErro("ESPERA O CARA JOGAR, BICHO");
+                        } catch (RemoteException ex) {
+                            this.comunicadorAdversario = null;
+                            this.comunicadorUsuario = null;
+                            
+                            Platform.runLater(() -> {
+                                TelaInicial.exibirException(ex);
+                                TelaInicial.iniciarTela();
+                            });
                         }
-                    } catch (RemoteException ex) {
-                        Logger.getLogger(BatalhaTela.class.getName()).log(Level.SEVERE, null, ex);
+                    } else {
+                        TelaInicial.enviarMensagemErro("Atire em um local vazio");
                     }
+                } else {
+                    TelaInicial.enviarMensagemErro("Espere sua vez");
                 }
             });
         }
@@ -355,10 +370,6 @@ public class BatalhaTela extends TabuleiroPronto {
 
     public void setnJogador(int nJogador) {
         this.nJogador = nJogador;
-    }
-
-    public void setPronto(boolean pronto) {
-        this.pronto = pronto;
     }
 
     public int getContagemUsuario() {
@@ -373,14 +384,10 @@ public class BatalhaTela extends TabuleiroPronto {
         return nJogador;
     }
 
-    public boolean isPronto() {
-        return pronto;
-    }
-    
     public void decrementarContagemUsuario() {
         contagemUsuario--;
     }
-    
+
     public void decrementarContagemAdveersário() {
         contagemAdversario--;
     }
