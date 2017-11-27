@@ -21,10 +21,13 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.util.Duration;
 
 public class BatalhaTela extends TabuleiroPronto {
 
@@ -41,6 +44,9 @@ public class BatalhaTela extends TabuleiroPronto {
 
     private Comunicacao comunicadorUsuario;
     private ComunicacaoRMI comunicadorAdversario;
+    
+    private final MediaPlayer acertoMusica = new MediaPlayer(new Media(getClass().getResource("recursos/acerto.mp3").toString()));
+    private final MediaPlayer erroMusica = new MediaPlayer(new Media(getClass().getResource("recursos/erro.mp3").toString()));
 
     private BatalhaTela() {
         nJogador = 0;
@@ -66,6 +72,16 @@ public class BatalhaTela extends TabuleiroPronto {
             this.comunicadorAdversario = comunicadorAdversario;
             this.comunicadorUsuario = comunicadorUsuario;
 
+            acertoMusica.setOnEndOfMedia(() -> {
+                acertoMusica.seek(Duration.ZERO);
+                acertoMusica.stop();
+            });
+            
+            erroMusica.setOnEndOfMedia(() -> {
+                erroMusica.seek(Duration.ZERO);
+                erroMusica.stop();
+            });
+            
             BorderPane root = new BorderPane();
 
             VBox vboxUsuario = new VBox();
@@ -353,12 +369,14 @@ public class BatalhaTela extends TabuleiroPronto {
             comunicadorUsuario.setEstadoJogador(Comunicacao.PRONTO);
             if (acertou) {
                 contagemAdversario--;
+                tocarSom(true);
                 campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
 
                 if (contagemAdversario == 0) {
                     TelaInicial.enviarMensagemInfo("Você ganhou!");
                 }
             } else {
+                tocarSom(false);
                 campoAdversarioMatriz[x][y].setFill(COR_ERRO);
             }
         } catch (RemoteException ex) {
@@ -394,5 +412,13 @@ public class BatalhaTela extends TabuleiroPronto {
 
     public void decrementarContagemAdveersário() {
         contagemAdversario--;
+    }
+
+    private void tocarSom(boolean acerto) {
+        if (acerto) {
+            acertoMusica.play();
+        } else {
+            erroMusica.play();
+        }
     }
 }
