@@ -28,7 +28,7 @@ public class ConectarTela {
     private Comunicacao comunicadorUsuario;
     private ComunicacaoRMI comunicadorAdversario;
     
-    boolean estaEmDialogoDeErro = false;
+    private boolean estaEmDialogoDeErro = false;
 
     public void iniciarTela(String ip, String nickName) {
         Text texto = new Text("Tentando conexão com: " + ip);

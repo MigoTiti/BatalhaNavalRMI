@@ -59,7 +59,7 @@ public class Comunicacao extends UnicastRemoteObject implements ComunicacaoRMI {
                     TelaInicial.enviarMensagemInfo("Você perdeu");
                 });
             } else {
-                estadoJogador = VEZ_DO_JOGADOR;
+                setEstadoJogador(VEZ_DO_JOGADOR);
                 Platform.runLater(() -> {
                     TelaInicial.enviarMensagemInfo("Sua vez");
                 });

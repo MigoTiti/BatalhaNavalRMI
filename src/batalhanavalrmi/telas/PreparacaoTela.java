@@ -53,9 +53,6 @@ public class PreparacaoTela extends TabuleiroPreparacao {
     private final Text ctContagemText;
     private final Text subContagemText;
 
-    public static boolean pronto = false;
-    public static boolean oponentePronto = false;
-
     public static final Color COR_BACKGROUND = Color.TRANSPARENT;
 
     private Rectangle preview;

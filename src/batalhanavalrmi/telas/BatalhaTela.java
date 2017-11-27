@@ -334,28 +334,7 @@ public class BatalhaTela extends TabuleiroPronto {
 
                 } else if (comunicadorUsuario.getEstadoJogador() == Comunicacao.VEZ_DO_JOGADOR) {
                     if (!campoAdversarioMatriz[x][y].getFill().equals(COR_ACERTO) && !campoAdversarioMatriz[x][y].getFill().equals(COR_ERRO)) {
-                        try {
-                            boolean acertou = comunicadorAdversario.jogada(x, y);
-                            comunicadorUsuario.setEstadoJogador(Comunicacao.PRONTO);
-                            if (acertou) {
-                                contagemAdversario--;
-                                campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
-
-                                if (contagemAdversario == 0) {
-                                    TelaInicial.enviarMensagemInfo("Você ganhou!");
-                                }
-                            } else {
-                                campoAdversarioMatriz[x][y].setFill(COR_ERRO);
-                            }
-                        } catch (RemoteException ex) {
-                            this.comunicadorAdversario = null;
-                            this.comunicadorUsuario = null;
-                            
-                            Platform.runLater(() -> {
-                                TelaInicial.exibirException(ex);
-                                TelaInicial.iniciarTela();
-                            });
-                        }
+                        atirar(x, y);
                     } else {
                         TelaInicial.enviarMensagemErro("Atire em um local vazio");
                     }
@@ -366,6 +345,31 @@ public class BatalhaTela extends TabuleiroPronto {
         }
 
         return rect;
+    }
+
+    private void atirar(int x, int y) {
+        try {
+            boolean acertou = comunicadorAdversario.jogada(x, y);
+            comunicadorUsuario.setEstadoJogador(Comunicacao.PRONTO);
+            if (acertou) {
+                contagemAdversario--;
+                campoAdversarioMatriz[x][y].setFill(COR_ACERTO);
+
+                if (contagemAdversario == 0) {
+                    TelaInicial.enviarMensagemInfo("Você ganhou!");
+                }
+            } else {
+                campoAdversarioMatriz[x][y].setFill(COR_ERRO);
+            }
+        } catch (RemoteException ex) {
+            this.comunicadorAdversario = null;
+            this.comunicadorUsuario = null;
+
+            Platform.runLater(() -> {
+                TelaInicial.exibirException(ex);
+                TelaInicial.iniciarTela();
+            });
+        }
     }
 
     public void setnJogador(int nJogador) {

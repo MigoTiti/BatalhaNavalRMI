@@ -60,7 +60,6 @@ public class CriarPartidaTela {
         }).start();
     }
 
-    //https://stackoverflow.com/questions/43725556/java-rmi-client-server-chat
     private void iniciarServidor(String nickName) {
         try {
             int nJogador = 1;
